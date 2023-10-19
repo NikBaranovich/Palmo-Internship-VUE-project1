@@ -5,8 +5,9 @@ import vue from '@vitejs/plugin-vue'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: "/Palmo-Internship-VUE-project1/",
   plugins: [
-    
+
     vue(),
   ],
   resolve: {
