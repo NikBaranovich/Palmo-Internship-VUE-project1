@@ -1,9 +1,20 @@
-
-import { createApp } from 'vue'
-import App from './App.vue'
+import { createApp } from "vue";
+import App from "./App.vue";
 import router from "@/router/router.js";
+import { db } from "@/firebase/index.js";
 
-const app = createApp(App)
+// Vuetify
+import "vuetify/styles";
+import { createVuetify } from "vuetify";
+import * as components from "vuetify/components";
+import * as directives from "vuetify/directives";
 
-app.use(router)
-    .mount("#app");
+const vuetify = createVuetify({
+  components,
+  directives,
+});
+
+const app = createApp(App);
+
+app.use(router).use(vuetify).mount("#app");
+
