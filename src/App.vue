@@ -10,6 +10,11 @@ import {useEventsStore} from "@/store/events.js";
 import {mapActions, mapState} from "pinia";
 
 export default {
+  data() {
+    return {
+      msg: null,
+    };
+  },
   components: {
     NavigationPanel,
   },

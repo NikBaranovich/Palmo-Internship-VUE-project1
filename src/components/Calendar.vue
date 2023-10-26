@@ -22,7 +22,8 @@
                 day.getMonth(),
                 day.getDate()
               )"
-              :key="event.id"
+              :style="{'background-color': event.color}"
+              @click="goToPage('singleEvent', {id: event.id})"
             >
               <div class="event-title">{{ event.title }}</div>
             </div>
@@ -39,33 +40,32 @@
         <div>
           <div class="form-group">
             <label for="event-title">Заголовок события</label>
-            <input type="text" id="event-title" v-model="newEvent.title" />
+            <input
+              class="form-input"
+              type="text"
+              id="event-title"
+              v-model="newEvent.title"
+            />
           </div>
           <div class="form-group">
             <label for="event-date">Дата начала события</label>
-            <input
-              type="date"
-              id="event-date"
-              :value="newEvent.startDate.toISOString().substr(0, 10)"
-              @input="handleDate(newEvent.startDate, $event.target.value)"
+            <custom-date-input
+              class="form-input"
+              v-model="newEvent.startDate"
             />
           </div>
           <div class="form-group">
             <label for="event-date">Дата конца события</label>
-            <input
-              type="date"
-              id="event-date"
-              :value="newEvent.endDate.toISOString().substr(0, 10)"
-              @input="handleDate(newEvent.endDate, $event.target.value)"
-            />
+            <custom-date-input class="form-input" v-model="newEvent.endDate" />
           </div>
-          <div class="form-group">
+          <div>
             <label for="event-date">Цвет события</label>
-            <input type="color" id="event-date" :v-model="newEvent.color" />
+            <input type="color" v-model="newEvent.color" />
           </div>
           <div class="form-group">
             <label for="event-description">Описание события</label>
             <textarea
+              class="form-input"
               id="event-description"
               rows="4"
               v-model="newEvent.description"
@@ -85,6 +85,7 @@
 
 <script>
 import Modal from "@/components/Modal.vue";
+import CustomDateInput from "@/components/UI/CustomDateInput.vue";
 import {useEventsStore} from "@/store/events.js";
 import {mapActions, mapState} from "pinia";
 
@@ -105,11 +106,12 @@ export default {
   },
   components: {
     Modal,
+    CustomDateInput,
   },
   methods: {
     ...mapActions(useEventsStore, ["saveEvent"]),
     saveNewEvent() {
-      this.saveEvent(this.newEvent);
+      this.saveEvent({...this.newEvent});
       this.closeModal();
     },
     previousMonth() {
@@ -127,7 +129,9 @@ export default {
       nextDay.setDate(day.getDate() + 1);
       this.newEvent.startDate = day;
       this.newEvent.endDate = day;
-
+      this.newEvent.color = "#33aaff";
+      this.newEvent.description = null;
+      this.newEvent.title = null;
       this.openModal();
     },
     openModal() {
@@ -136,9 +140,11 @@ export default {
     closeModal() {
       this.isModalVisible = false;
     },
-    handleDate(newDate, dateInput) {
-      newDate = new Date(dateInput + "T00:00");
-      console.log(newDate);
+    handleStartDate(dateInput) {
+      this.newEvent.startDate = new Date(dateInput + "T00:00");
+    },
+    handleEndDate(dateInput) {
+      this.newEvent.endDate = new Date(dateInput + "T00:00");
     },
     getEventsForDay(year, month, day) {
       return this.events.filter(
@@ -150,6 +156,12 @@ export default {
           day >= event.startDate.getDate() &&
           day <= event.endDate.getDate()
       );
+    },
+    goToPage(name, params) {
+      this.$router.push({
+        name,
+        params,
+      });
     },
   },
   computed: {
@@ -295,7 +307,7 @@ button:hover {
 }
 
 .event {
-  background-color: #33aaff;
+  /* background-color: #33aaff; */
   color: #fff;
   padding: 2px 4px;
   border-radius: 4px;

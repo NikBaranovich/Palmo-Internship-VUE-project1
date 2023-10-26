@@ -16,7 +16,10 @@ export const useEventsStore = defineStore("events", {
       onAuthStateChanged(auth, async (user) => {
         const userCollectionRef = collection(db, `users/${user.uid}/events`);
         const GroupDoc = await getDocs(userCollectionRef);
-        GroupDoc.forEach((item) => this.eventsState.push(item.data()));
+
+        GroupDoc.forEach((item) =>
+          this.eventsState.push({id: item.id, ...item.data()})
+        );
         this.eventsState = this.eventsState.map((element) => {
           element.startDate = new Date(element.startDate.seconds * 1000);
           element.endDate = new Date(element.endDate.seconds * 1000);
@@ -29,7 +32,7 @@ export const useEventsStore = defineStore("events", {
       onAuthStateChanged(auth, (user) => {
         if (user) {
           addDoc(collection(db, `users/${user.uid}/events`), newEvent)
-            .then(() => {
+            .then((data) => {
               this.eventsState.push(newEvent);
             })
             .catch((error) => {
