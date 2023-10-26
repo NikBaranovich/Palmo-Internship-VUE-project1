@@ -1,15 +1,13 @@
-import { createRouter, createWebHistory } from "vue-router";
+import {createRouter, createWebHistory} from "vue-router";
 
-import TestComponent from '@/components/TestComponent.vue'
-import Calendar from '@/components/Calendar.vue'
-import Register from '@/components/Register.vue'
-import Login from '@/components/Login.vue'
+import Calendar from "@/components/Calendar.vue";
+import Register from "@/components/Register.vue";
+import Login from "@/components/Login.vue";
 
 const routes = [
-  { path: "/", name: "calendar", component: Calendar },
-  { path: "/test", component: TestComponent },
-  { path: "/register", component: Register },
-  { path: "/login", component: Login },
+  {path: "/", name: "calendar", component: Calendar},
+  {path: "/register", name: "register", component: Register},
+  {path: "/login", name: "login", component: Login},
 ];
 
 const router = createRouter({

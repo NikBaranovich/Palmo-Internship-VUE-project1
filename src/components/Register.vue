@@ -17,7 +17,12 @@
       <div class="error" v-if="error">{{ error }}</div>
       <button type="submit" class="register-button">Register</button>
     </form>
-    <button @click="signInWithGoogle" class="google-button">Register with Google</button>
+    <button @click="signInWithGoogle" class="google-button">
+      Register with Google
+    </button>
+    <button @click="$router.push({name: 'login'})" class="google-button">
+      Login
+    </button>
   </div>
 </template>
 <script>
