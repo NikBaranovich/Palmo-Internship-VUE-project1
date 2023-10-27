@@ -14,32 +14,36 @@
       <div class="week" v-for="week in weeks">
         <div
           class="day"
+          @click="dayClickHandler(day.date)"
           v-for="day in week"
-          @click="dayClickHandler(day)"
           :class="{
-            'outside-month': day.getMonth() != displayedMonth.getMonth(),
-            'current-day': areDaysEqual(day, currentDate),
+            'outside-month': day.date.getMonth() != displayedMonth.getMonth(),
+            'current-day': areDaysEqual(day.date, currentDate),
           }"
         >
-          {{ day.getDate() }}
+          {{ day.date.getDate() }}
           <div class="events">
             <div
               class="event"
-              v-for="event in getEventsForDay(
-                day.getFullYear(),
-                day.getMonth(),
-                day.getDate()
-              )"
+              v-for="event in [...day.events].splice(0, 2)"
               :style="{'background-color': event.color}"
-              @click="goToPage('singleEvent', {id: event.id})"
+              @click.stop="goToPage('singleEvent', {id: event.id})"
             >
               <div class="event-title">{{ event.title }}</div>
             </div>
+          </div>
+          <div v-if="day.events.length > 2" @click.stop="moreButtonClick">
+            {{ day.events.length - 2 }} More
           </div>
         </div>
       </div>
     </div>
 
+    <modal :style="{color: 'green'}" v-if="isModal2Visible"
+      ><template v-slot:header>
+        <h2>Add new event</h2>
+      </template></modal
+    >
     <modal v-if="isModalVisible">
       <template v-slot:header>
         <h2>Add new event</h2>
@@ -114,8 +118,11 @@ export default {
         color: null,
       },
       isModalVisible: false,
+      isModal2Visible: false,
       daysOfWeek: ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"],
       currentEvents: [],
+      modalPositionX: 50,
+      modalPositionY: 50,
     };
   },
   components: {
@@ -142,6 +149,11 @@ export default {
       newMonth.setMonth(newMonth.getMonth() + 1);
       this.displayedMonth = newMonth;
     },
+    moreButtonClick(event) {
+      this.modalPositionX = event.pageX;
+      this.modalPositionY = event.pageY;
+      this.isModal2Visible = true;
+    },
     dayClickHandler(day) {
       if (!this.user) {
         this.$router.push({
@@ -162,7 +174,10 @@ export default {
     handleEndDate(dateInput) {
       this.newEvent.endDate = new Date(dateInput + "T00:00");
     },
-    getEventsForDay(year, month, day) {
+    getEventsForDay(date) {
+      const year = date.getFullYear();
+      const month = date.getMonth();
+      const day = date.getDate();
       return this.currentEvents.filter(
         (event) =>
           year >= event.startDate.getFullYear() &&
@@ -210,29 +225,49 @@ export default {
         this.displayedMonth.getMonth() - 1,
         prevMonthDay
       );
+      const endDate = new Date(
+        this.displayedMonth.getFullYear(),
+        this.displayedMonth.getMonth() + 1,
+        7 - lastDay.getDay()
+      );
 
+      this.currentEvents = this.eventsInRange(startDate, endDate);
       const weeks = [];
       let currentWeek = [];
 
       for (let i = 0; i < firstDayOfWeek; i++) {
-        currentWeek.push(
-          new Date(
+        currentWeek.push({
+          date: new Date(
             this.displayedMonth.getFullYear(),
             this.displayedMonth.getMonth() - 1,
             prevMonthDay
-          )
-        );
+          ),
+          events: this.getEventsForDay(
+            new Date(
+              this.displayedMonth.getFullYear(),
+              this.displayedMonth.getMonth() - 1,
+              prevMonthDay
+            )
+          ),
+        });
         prevMonthDay++;
       }
 
       for (let day = 1; day <= daysInMonth; day++) {
-        currentWeek.push(
-          new Date(
+        currentWeek.push({
+          date: new Date(
             this.displayedMonth.getFullYear(),
             this.displayedMonth.getMonth(),
             day
-          )
-        );
+          ),
+          events: this.getEventsForDay(
+            new Date(
+              this.displayedMonth.getFullYear(),
+              this.displayedMonth.getMonth(),
+              day
+            )
+          ),
+        });
         if (currentWeek.length === 7) {
           weeks.push(currentWeek);
           currentWeek = [];
@@ -243,24 +278,24 @@ export default {
       }
       let nextMonthDay = 1;
       while (currentWeek.length < 7) {
-        currentWeek.push(
-          new Date(
+        currentWeek.push({
+          date: new Date(
             this.displayedMonth.getFullYear(),
             this.displayedMonth.getMonth() + 1,
             nextMonthDay
-          )
-        );
+          ),
+          events: this.getEventsForDay(
+            new Date(
+              this.displayedMonth.getFullYear(),
+              this.displayedMonth.getMonth() + 1,
+              nextMonthDay
+            )
+          ),
+        });
         nextMonthDay++;
       }
 
-      const endDate = new Date(
-        this.displayedMonth.getFullYear(),
-        this.displayedMonth.getMonth() + 1,
-        --nextMonthDay
-      );
       weeks.push(currentWeek);
-
-      this.currentEvents = this.eventsInRange(startDate, endDate);
       return weeks;
     },
   },

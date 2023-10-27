@@ -107,7 +107,6 @@ export default {
     ...mapState(useEventsStore, ["events"]),
     event() {
       const id = this.$route.params.id;
-      console.log(this.events);
       return this.events.find((event) => event.id == id);
     },
   },
