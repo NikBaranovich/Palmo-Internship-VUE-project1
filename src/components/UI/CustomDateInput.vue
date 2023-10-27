@@ -1,5 +1,5 @@
 <template>
-  <input :value="dateToString" @input="updateInput" type="date" />
+  <input :value="dateToString" @input="updateInput" type="datetime-local" />
 </template>
 <script>
 export default {
@@ -19,17 +19,19 @@ export default {
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, "0");
       const day = String(date.getDate()).padStart(2, "0");
-
-      return `${year}-${month}-${day}`;
-    },
-    stringToDate(string) {
-      return new Date(string + "T00:00");
+      const hour = String(date.getHours()).padStart(2, "0");
+      const minute = String(date.getMinutes()).padStart(2, "0");
+      return `${year}-${month}-${day}T${hour}:${minute}`;
     },
   },
   methods: {
     updateInput(event) {
       console.log("dateString", event.target.value);
-      this.$emit("update:modelValue", new Date(event.target.value + "T00:00"));
+      this.$emit("update:modelValue", this.stringToDate(event.target.value));
+    },
+    stringToDate(string) {
+      console.log(string);
+      return new Date(string);
     },
   },
 };

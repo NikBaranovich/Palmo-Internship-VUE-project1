@@ -5,8 +5,8 @@
       <router-link to="/">Настройки</router-link>
     </div>
     <div class="navbar-right">
-      <div v-if="currentUser">
-        <span class="user-info">Добро пожаловать, {{ currentUser.displayName }}</span>
+      <div v-if="user">
+        <span class="user-info">Добро пожаловать, {{ user.displayName }}</span>
         <button @click="logout">Выход</button>
       </div>
       <div v-else>
@@ -18,31 +18,23 @@
 </template>
 
 <script>
-import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
-
+import {useAuthorizationStore} from "@/store/authorization.js";
+import {mapActions, mapState} from "pinia";
 export default {
   data() {
     return {
       currentUser: null,
     };
   },
-  mounted() {
-    const auth = getAuth();
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        console.log(user);
-        this.currentUser = user;
-      } else {
-        this.currentUser = null;
-      }
-    });
+  computed: {
+    ...mapState(useAuthorizationStore, ["user"]),
   },
   methods: {
-    logout() {
-      signOut(getAuth()).then(() => {
-        this.$router.push({
-          name: "calendar",
-        });
+    ...mapActions(useAuthorizationStore, ["logout"]),
+    logoutHandler() {
+      logout();
+      this.$router.push({
+        name: "calendar",
       });
     },
   },

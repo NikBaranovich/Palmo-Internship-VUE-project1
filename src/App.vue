@@ -7,6 +7,7 @@
 <script>
 import NavigationPanel from "@/components/NavigationPanel.vue";
 import {useEventsStore} from "@/store/events.js";
+import {useAuthorizationStore} from "@/store/authorization.js";
 import {mapActions, mapState} from "pinia";
 
 export default {
@@ -23,10 +24,11 @@ export default {
   },
   methods: {
     ...mapActions(useEventsStore, ["fetchEvents"]),
+    ...mapActions(useAuthorizationStore, ["auth"]),
   },
   mounted() {
     this.fetchEvents();
-    console.log(this.events);
+    this.auth();
   },
 };
 </script>

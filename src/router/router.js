@@ -3,7 +3,7 @@ import {createRouter, createWebHistory} from "vue-router";
 import Calendar from "@/components/Calendar.vue";
 import Register from "@/components/Register.vue";
 import Login from "@/components/Login.vue";
-import SingleEvent from "@/components/SingleEvent.vue";
+const SingleEvent = () => import('@/components/SingleEvent.vue')
 
 const routes = [
   {path: "/", name: "calendar", component: Calendar},

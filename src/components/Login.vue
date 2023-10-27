@@ -1,7 +1,7 @@
 <template>
   <div class="sign-in-form">
     <h2>Sign In</h2>
-    <form @submit.prevent="signIn" class="form">
+    <form @submit.prevent="signInFormSubmit" class="form">
       <div class="form-group">
         <label for="email">Email:</label>
         <input type="email" id="email" v-model="email" required />
@@ -13,17 +13,14 @@
       <div class="error" v-if="error">{{ error }}</div>
       <button type="submit" class="sign-in-button">Sign In</button>
     </form>
-    <button @click="signInWithGoogle" class="google-button">Sign In with Google</button>
+    <button @click="signInWithGoogleHandler" class="google-button">
+      Sign In with Google
+    </button>
   </div>
 </template>
 <script>
-import {
-  getAuth,
-  signInWithEmailAndPassword,
-  GoogleAuthProvider,
-  signInWithPopup,
-  onAuthStateChanged,
-} from "firebase/auth";
+import {useAuthorizationStore} from "@/store/authorization.js";
+import {mapActions, mapState} from "pinia";
 export default {
   data() {
     return {
@@ -33,39 +30,22 @@ export default {
     };
   },
   methods: {
-    signIn() {
-      signInWithEmailAndPassword(getAuth(), this.email, this.password)
-        .then((data) => {
-          this.$router.push({
-            name: "calendar",
-          });
-        })
-        .catch((error) => {
-          this.error = error.message;
-        });
+    ...mapActions(useAuthorizationStore, ["signIn", "signInWithGoogle"]),
+    async signInWithGoogleHandler() {
+      await this.signInWithGoogle();
+      this.$router.push({
+        name: "calendar",
+      });
     },
-    signInWithGoogle() {
-      const provider = new GoogleAuthProvider();
-      signInWithPopup(getAuth(), provider)
-        .then((result) => {
-          this.$router.push({
-            name: "calendar",
-          });
-        })
-        .catch((error) => {
-          this.error = error.message;
-        });
-    },
-  },
-  mounted() {
-    const auth = getAuth();
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        console.log(user);
-      } else {
-        console.log("No user is signed in.");
+    async signInFormSubmit() {
+      this.error = await this.signIn(this.email, this.password);
+      if (this.error) {
+        return;
       }
-    });
+      this.$router.push({
+        name: "calendar",
+      });
+    },
   },
 };
 </script>
