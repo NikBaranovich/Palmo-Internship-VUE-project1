@@ -19,11 +19,45 @@ export const useEventsStore = defineStore("events", {
   },
   actions: {
     eventsInRange(startDate, endDate) {
-      return this.eventsState.filter(
-        (event) =>
-          event.startDate.getTime() >= startDate.getTime() &&
-          event.endDate.getTime() <= endDate.getTime()
-      );
+      return this.eventsState.filter((event) => {
+        if (
+          (event.startDate <= startDate && event.endDate >= endDate) ||
+          (event.startDate >= startDate && event.endDate <= endDate)
+        ) {
+          return true;
+        }
+
+        if (
+          (event.startDate <= startDate && event.endDate >= startDate) ||
+          (event.startDate <= endDate && event.endDate >= endDate)
+        ) {
+          return true;
+        }
+
+        if (event.repeat == "monthly") {
+          return true;
+        }
+
+        if (event.repeat === "annually") {
+          const startMonthDay =
+            startDate.getMonth() * 100 + startDate.getDate();
+          const endMonthDay = endDate.getMonth() * 100 + endDate.getDate();
+
+          const eventStartMonthDay =
+            event.startDate.getMonth() * 100 + event.startDate.getDate();
+          const eventEndMonthDay =
+            event.endDate.getMonth() * 100 + event.endDate.getDate();
+
+          return (
+            (eventStartMonthDay >= startMonthDay &&
+              eventStartMonthDay <= endMonthDay) ||
+            (eventEndMonthDay >= startMonthDay &&
+              eventEndMonthDay <= endMonthDay)
+          );
+        }
+
+        return false;
+      });
     },
     fetchEvents() {
       const auth = getAuth();

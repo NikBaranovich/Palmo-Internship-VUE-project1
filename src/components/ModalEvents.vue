@@ -1,21 +1,56 @@
 <template>
-  <div class="event-modal">
-    
+  <div class="modal">
+    <div class="event-modal" :style="{left: coords.left, top: coords.top}">
+      <div class="event-modal-content">
+        <div class="event-header">
+          <slot name="header"></slot>
+        </div>
+        <slot name="content"></slot>
+      </div>
+    </div>
   </div>
 </template>
 <script>
-export default {};
+export default {
+  props: {
+    coords:{
+      type: Object,
+    }
+  },
+};
 </script>
 <style scoped>
+.modal {
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
 .event-modal {
-  position: abcolute;
+  position: fixed;
+  top: 50%;
+  left: 50%;
   transform: translate(-50%, -50%);
   background-color: #fff;
-  padding: 20px;
-  border-radius: 5px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  max-width: 400px;
-  width: 300px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  width: 320px;
   z-index: 1000;
+}
+
+.event-modal-content {
+  padding: 20px;
+}
+
+.event-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
 }
 </style>

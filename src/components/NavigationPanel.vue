@@ -2,7 +2,6 @@
   <nav class="navbar">
     <div class="navbar-left">
       <router-link to="/">Календарь</router-link>
-      <router-link to="/">Настройки</router-link>
     </div>
     <div class="navbar-right">
       <div v-if="user">

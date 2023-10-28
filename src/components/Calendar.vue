@@ -5,12 +5,14 @@
       <h2>{{ currentMonth }}</h2>
       <button @click="nextMonth">Next month</button>
     </div>
+
     <div class="calendar">
       <div class="week day-names">
         <div class="day-name" v-for="day in daysOfWeek" :key="day">
           {{ day }}
         </div>
       </div>
+
       <div class="week" v-for="week in weeks">
         <div
           class="day"
@@ -22,6 +24,7 @@
           }"
         >
           {{ day.date.getDate() }}
+
           <div class="events">
             <div
               class="event"
@@ -32,18 +35,48 @@
               <div class="event-title">{{ event.title }}</div>
             </div>
           </div>
-          <div v-if="day.events.length > 2" @click.stop="moreButtonClick">
+
+          <div
+            v-if="day.events.length > 2"
+            @click.stop="moreButtonClick($event, day)"
+          >
             {{ day.events.length - 2 }} More
           </div>
         </div>
       </div>
     </div>
 
-    <modal :style="{color: 'green'}" v-if="isModal2Visible"
-      ><template v-slot:header>
-        <h2>Add new event</h2>
-      </template></modal
+    <modal-events
+      :coords="{
+        left: modalPositionX + 'px',
+        top: modalPositionY + 'px',
+      }"
+      v-if="isModalEventsVisible"
     >
+      <template v-slot:header>
+        <span class="event-date"
+          >{{
+            selectedDay.date.toLocaleDateString("en-EN", {weekday: "long"})
+          }}, {{ selectedDay.date.getDate() }}</span
+        >
+        <button @click="isModalEventsVisible = false" class="close-button">
+          ✕
+        </button>
+      </template>
+      <template v-slot:content>
+        <ul class="events">
+          <li
+            v-for="event in selectedDay.events"
+            :key="event.id"
+            class="event"
+            :style="{'background-color': event.color}"
+            @click.stop="goToPage('singleEvent', {id: event.id})"
+          >
+            {{ event.title }}
+          </li>
+        </ul>
+      </template>
+    </modal-events>
     <modal v-if="isModalVisible">
       <template v-slot:header>
         <h2>Add new event</h2>
@@ -60,18 +93,32 @@
             />
           </div>
           <div class="form-group">
-            <label for="event-date">Start date</label>
+            <label for="event-start-date">Start date</label>
             <custom-date-input
               class="form-input"
+              id="event-start-date"
               v-model="newEvent.startDate"
             />
           </div>
           <div class="form-group">
-            <label for="event-date">End date</label>
-            <custom-date-input class="form-input" v-model="newEvent.endDate" />
+            <label for="event-end-date">End date</label>
+            <custom-date-input
+              class="form-input"
+              id="event-end-date"
+              v-model="newEvent.endDate"
+            />
+          </div>
+          <div class="form-group">
+            <label for="event-repeat">Repeat</label>
+            <custom-select
+              v-model="newEvent.repeat"
+              class="form-input"
+              id="event-repeat"
+              :options="repeatOptions"
+            />
           </div>
           <div>
-            <label for="event-color">Цвет события</label>
+            <label for="event-color">Event color</label>
             <input for="event-color" type="color" v-model="newEvent.color" />
           </div>
           <div class="form-group">
@@ -97,7 +144,10 @@
 
 <script>
 import Modal from "@/components/Modal.vue";
+import ModalEvents from "@/components/ModalEvents.vue";
 import CustomDateInput from "@/components/UI/CustomDateInput.vue";
+import CustomSelect from "@/components/UI/CustomSelect.vue";
+
 import {useEventsStore} from "@/store/events.js";
 import {useAuthorizationStore} from "@/store/authorization.js";
 
@@ -114,20 +164,25 @@ export default {
         title: null,
         startDate: null,
         endDate: null,
+        repeat: null,
         description: null,
         color: null,
       },
       isModalVisible: false,
-      isModal2Visible: false,
-      daysOfWeek: ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"],
+      isModalEventsVisible: false,
+      daysOfWeek: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
       currentEvents: [],
-      modalPositionX: 50,
-      modalPositionY: 50,
+      modalPositionX: 0,
+      modalPositionY: 0,
+      selectedDay: null,
+      repeatOptions: ["none", "monthly", "annually"],
     };
   },
   components: {
     Modal,
     CustomDateInput,
+    ModalEvents,
+    CustomSelect,
   },
   mixins: [redirectMixin, modalMixin],
   methods: {
@@ -149,10 +204,30 @@ export default {
       newMonth.setMonth(newMonth.getMonth() + 1);
       this.displayedMonth = newMonth;
     },
-    moreButtonClick(event) {
+    moreButtonClick(event, date) {
+      this.selectedDay = date;
       this.modalPositionX = event.pageX;
       this.modalPositionY = event.pageY;
-      this.isModal2Visible = true;
+      this.isModalEventsVisible = true;
+
+      const modalWidth = 320;
+
+      const windowWidth = window.innerWidth;
+
+      let modalPositionX = event.pageX;
+      let modalPositionY = event.pageY;
+
+      if (modalPositionX + modalWidth > windowWidth) {
+        modalPositionX = windowWidth - modalWidth;
+      }
+
+      if (modalPositionX - modalWidth < 0) {
+        modalPositionX = 0 + modalWidth;
+      }
+
+      this.modalPositionX = modalPositionX;
+      this.modalPositionY = modalPositionY;
+      this.isModalEventsVisible = true;
     },
     dayClickHandler(day) {
       if (!this.user) {
@@ -164,29 +239,49 @@ export default {
       this.newEvent.endDate = new Date(day);
       this.newEvent.color = "#33aaff";
       this.newEvent.description = null;
+      this.newEvent.repeat = "none";
       this.newEvent.title = null;
       this.openModal();
     },
-
-    handleStartDate(dateInput) {
-      this.newEvent.startDate = new Date(dateInput + "T00:00");
-    },
-    handleEndDate(dateInput) {
-      this.newEvent.endDate = new Date(dateInput + "T00:00");
-    },
     getEventsForDay(date) {
-      const year = date.getFullYear();
-      const month = date.getMonth();
-      const day = date.getDate();
-      return this.currentEvents.filter(
-        (event) =>
-          year >= event.startDate.getFullYear() &&
-          year <= event.endDate.getFullYear() &&
-          month >= event.startDate.getMonth() &&
-          month <= event.endDate.getMonth() &&
-          day >= event.startDate.getDate() &&
-          day <= event.endDate.getDate()
-      );
+      return this.currentEvents.filter((event) => {
+        if (
+          date.getTime() >= event.startDate.getTime() &&
+          date.getTime() <= event.endDate.getTime()
+        ) {
+          return true;
+        }
+
+        if (event.repeat === "annually") {
+          const targetMonthDay = date.getMonth() * 100 + date.getDate();
+          const eventStartMonthDay =
+            event.startDate.getMonth() * 100 + event.startDate.getDate();
+          const eventEndMonthDay =
+            event.endDate.getMonth() * 100 + event.endDate.getDate();
+
+          // Проверяем, находится ли заданный день внутри диапазона дней события
+          return (
+            targetMonthDay >= eventStartMonthDay &&
+            targetMonthDay <= eventEndMonthDay
+          );
+        }
+
+        if (event.repeat === "monthly") {
+          if (event.startDate.getDate() > event.endDate.getDate()) {
+            if (date.getDate() >= event.startDate.getDate()) {
+              return true;
+            }
+            if (date.getDate() <= event.endDate.getDate()) {
+              return true;
+            }
+          }
+          return (
+            date.getDate() >= event.startDate.getDate() &&
+            date.getDate() <= event.endDate.getDate()
+          );
+        }
+        return false;
+      });
     },
   },
   computed: {
@@ -306,90 +401,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-.calendar {
-  display: flex;
-  flex-wrap: wrap;
-  max-width: 100%;
-}
-.month-navigation {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-.day-names {
-  background-color: #f0f0f0;
-  border-top: 1px solid #ccc;
-  border-bottom: 1px solid #ccc;
-  font-weight: bold;
-  text-align: center;
-}
-
-.day-name {
-  flex: 1;
-  border-right: 1px solid #ccc;
-  padding: 15px 10px;
-}
-
-.week {
-  display: flex;
-  width: 100%;
-}
-
-.day {
-  width: calc(100% / 7);
-  position: relative;
-  border-right: 1px solid #ccc;
-  border-bottom: 1px solid #ccc;
-  text-align: center;
-  padding: 15px 10px;
-  font-size: 16px;
-}
-.current-day {
-  background-color: #fbfad4;
-}
-.day:hover {
-  cursor: pointer;
-}
-
-.outside-month {
-  color: #bbb;
-  background-color: #eff1f3;
-}
-button {
-  background-color: #243de2;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  padding: 8px;
-  cursor: pointer;
-  transition: background-color 0.2s, color 0.2s;
-}
-
-button:hover {
-  background-color: #0d58c1;
-}
-.events {
-  display: flex;
-  flex-direction: column;
-  top: 5px;
-  left: 5px;
-}
-
-.event {
-  color: #fff;
-  padding: 2px 4px;
-  border-radius: 4px;
-  margin: 2px 0;
-  text-overflow: clip;
-}
-.event-title {
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: clip;
-  white-space: nowrap;
-  width: auto;
-}
-</style>
