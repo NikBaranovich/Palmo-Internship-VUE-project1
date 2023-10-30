@@ -20,6 +20,7 @@
 </template>
 <script>
 import {useAuthorizationStore} from "@/store/authorization.js";
+import {usePageStore} from "@/store/page.js";
 import {mapActions, mapState} from "pinia";
 export default {
   data() {
@@ -29,12 +30,19 @@ export default {
       error: "",
     };
   },
+  computed: {
+    ...mapState(usePageStore, ["pageYear", "pageMonth"]),
+  },
   methods: {
     ...mapActions(useAuthorizationStore, ["signIn", "signInWithGoogle"]),
     async signInWithGoogleHandler() {
       await this.signInWithGoogle();
       this.$router.push({
         name: "calendar",
+        query: {
+          month: this.pageMonth,
+          year: this.pageYear,
+        },
       });
     },
     async signInFormSubmit() {
@@ -44,6 +52,10 @@ export default {
       }
       this.$router.push({
         name: "calendar",
+        query: {
+          month: this.pageMonth,
+          year: this.pageYear,
+        },
       });
     },
   },

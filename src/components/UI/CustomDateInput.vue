@@ -26,11 +26,9 @@ export default {
   },
   methods: {
     updateInput(event) {
-      console.log("dateString", event.target.value);
       this.$emit("update:modelValue", this.stringToDate(event.target.value));
     },
     stringToDate(string) {
-      console.log(string);
       return new Date(string);
     },
   },

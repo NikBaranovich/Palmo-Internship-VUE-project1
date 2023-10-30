@@ -9,55 +9,46 @@ import {
 } from "firebase/firestore";
 import {getAuth, onAuthStateChanged} from "firebase/auth";
 import {db} from "@/firebase/index.js";
+import axiosInstanse from "@/services/axios.js";
 
 export const useEventsStore = defineStore("events", {
   state: () => ({
     eventsState: [],
+    holidaysState: [],
   }),
   getters: {
     events: (state) => state.eventsState,
+    holidays: (state) => state.holidaysState,
+    eventsWithHolidays: (state) =>
+      state.eventsState.concat(state.holidaysState),
   },
   actions: {
-    eventsInRange(startDate, endDate) {
-      return this.eventsState.filter((event) => {
-        if (
-          (event.startDate <= startDate && event.endDate >= endDate) ||
-          (event.startDate >= startDate && event.endDate <= endDate)
-        ) {
-          return true;
-        }
-
-        if (
-          (event.startDate <= startDate && event.endDate >= startDate) ||
-          (event.startDate <= endDate && event.endDate >= endDate)
-        ) {
-          return true;
-        }
-
-        if (event.repeat == "monthly") {
-          return true;
-        }
-
-        if (event.repeat === "annually") {
-          const startMonthDay =
-            startDate.getMonth() * 100 + startDate.getDate();
-          const endMonthDay = endDate.getMonth() * 100 + endDate.getDate();
-
-          const eventStartMonthDay =
-            event.startDate.getMonth() * 100 + event.startDate.getDate();
-          const eventEndMonthDay =
-            event.endDate.getMonth() * 100 + event.endDate.getDate();
-
-          return (
-            (eventStartMonthDay >= startMonthDay &&
-              eventStartMonthDay <= endMonthDay) ||
-            (eventEndMonthDay >= startMonthDay &&
-              eventEndMonthDay <= endMonthDay)
-          );
-        }
-
-        return false;
-      });
+    clearEvents() {
+      this.eventsState = [];
+    },
+    
+    fetchHolidays(year, countryCode) {
+      this.holidaysState = [];
+      let id = 1;
+      axiosInstanse
+        .get(`/PublicHolidays/${year}/${countryCode}`)
+        .then((response) => {
+          response.data.forEach((holiday) => {
+            this.holidaysState.push({
+              id,
+              title: holiday.localName,
+              startDate: new Date(holiday.date),
+              endDate: new Date(holiday.date),
+              description: null,
+              repeat: "annually",
+              color: "#4CBB17",
+            });
+            id++;
+          });
+        })
+        .catch((error) => {
+          console.log(error);
+        });
     },
     fetchEvents() {
       const auth = getAuth();
@@ -81,7 +72,6 @@ export const useEventsStore = defineStore("events", {
     saveEvent(newEvent) {
       const auth = getAuth();
       if (!auth.currentUser) {
-        console.log("Error!");
         return;
       }
       addDoc(collection(db, `users/${auth.currentUser.uid}/events`), newEvent)
@@ -89,17 +79,12 @@ export const useEventsStore = defineStore("events", {
           this.eventsState.push({id: data.id, ...newEvent});
         })
         .catch((error) => {
-          switch (error.code) {
-            case "permission-denied": {
-              console.log("Permission denied!");
-            }
-          }
+          return error.code;
         });
     },
     editEvent(id, event) {
       const auth = getAuth();
       if (!auth.currentUser) {
-        console.log("Error!");
         return;
       }
       const docRef = doc(db, `users/${auth.currentUser.uid}/events`, id);
@@ -109,17 +94,12 @@ export const useEventsStore = defineStore("events", {
           Object.assign(ev, event);
         })
         .catch((error) => {
-          switch (error.code) {
-            case "permission-denied": {
-              console.log("Permission denied!");
-            }
-          }
+          return error.code;
         });
     },
     deleteEvent(id) {
       const auth = getAuth();
       if (!auth.currentUser) {
-        console.log("Error!");
         return;
       }
       deleteDoc(doc(db, `users/${auth.currentUser.uid}/events`, id));

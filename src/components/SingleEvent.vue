@@ -5,10 +5,13 @@
       <h2>{{ event.title }}</h2>
       <p>Start: {{ event.startDate }}</p>
       <p>End: {{ event.endDate }}</p>
+      <p>Repeat: {{ event.repeat }}</p>
       <p>Description: {{ event.description }}</p>
     </div>
-    <button @click="editClickHandler">Edit</button>
-    <button @click="deleteEventHandler">Delete</button>
+    <div>
+      <button class="custom-button" @click="editClickHandler">Edit</button>
+      <button class="custom-button" @click="deleteEventHandler">Delete</button>
+    </div>
     <modal v-if="isModalVisible">
       <template v-slot:header>
         <h2>Edit event</h2>
@@ -43,6 +46,15 @@
             <input for="event-color" type="color" v-model="editedEvent.color" />
           </div>
           <div class="form-group">
+            <label for="event-repeat">Repeat</label>
+            <custom-select
+              v-model="editedEvent.repeat"
+              class="form-input"
+              id="event-repeat"
+              :options="repeatOptions"
+            />
+          </div>
+          <div class="form-group">
             <label for="event-description">Описание события</label>
             <textarea
               class="form-input"
@@ -55,8 +67,8 @@
       </template>
       <template v-slot:footer>
         <div class="button-group">
-          <button type="button" @click="closeModal">Cancel</button>
-          <button @click="editEventHandler">Edit</button>
+          <button class="custom-button" @click="closeModal">Cancel</button>
+          <button class="custom-button" @click="editEventHandler">Edit</button>
         </div>
       </template>
     </modal>
@@ -66,6 +78,8 @@
 import {useEventsStore} from "@/store/events.js";
 import {mapActions, mapState} from "pinia";
 import Modal from "@/components/Modal.vue";
+import CustomSelect from "@/components/UI/CustomSelect.vue";
+
 import CustomDateInput from "@/components/UI/CustomDateInput.vue";
 import {redirectMixin} from "@/mixins/redirect.js";
 import {modalMixin} from "@/mixins/modal.js";
@@ -78,15 +92,18 @@ export default {
         title: null,
         startDate: null,
         endDate: null,
+        repeat: null,
         description: null,
         color: null,
       },
+      repeatOptions: ["none", "monthly", "annually"],
     };
   },
   mixins: [redirectMixin, modalMixin],
   components: {
     Modal,
     CustomDateInput,
+    CustomSelect,
   },
   methods: {
     ...mapActions(useEventsStore, ["editEvent", "deleteEvent"]),
@@ -104,10 +121,10 @@ export default {
     },
   },
   computed: {
-    ...mapState(useEventsStore, ["events"]),
+    ...mapState(useEventsStore, ["events", "eventsWithHolidays"]),
     event() {
       const id = this.$route.params.id;
-      return this.events.find((event) => event.id == id);
+      return this.eventsWithHolidays.find((event) => event.id == id);
     },
   },
 };
@@ -115,8 +132,7 @@ export default {
 
 <style scoped>
 .event-info {
-  display: flex;
-  margin: 20px 0;
+  margin: 20px 10px;
 }
 
 .event-color {
@@ -129,7 +145,6 @@ export default {
 .event-details {
   flex: 1;
 }
-
 .event-details h2 {
   font-size: 20px;
 }

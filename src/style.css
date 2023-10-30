@@ -114,7 +114,24 @@
   white-space: nowrap;
   width: auto;
 }
+.custom-button {
+  display: inline-block;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  background: rgb(9, 159, 209);
+  color: #ffffff;
+  font-size: 16px;
+  text-align: center;
+  text-decoration: none;
+  transition: background 0.3s;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
 
+.custom-button:hover {
+  background: rgb(8, 122, 160);
+}
 
 
 .event-date {
@@ -138,4 +155,8 @@
 
 .close-button:hover {
   color: #333;
+}
+
+.calendar-component{
+  margin-top: 10px;
 }

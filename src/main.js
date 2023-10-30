@@ -18,4 +18,14 @@ const vuetify = createVuetify({
 const app = createApp(App);
 const pinia = createPinia();
 
-app.use(router).use(vuetify).use(pinia).mount("#app");
+app
+  .use(router)
+  .use(vuetify)
+  .use(pinia)
+  .directive("color", {
+    mounted(el, binding) {
+      const color = binding.value || binding.arg || "black";
+      el.style.color = color;
+    },
+  })
+  .mount("#app");

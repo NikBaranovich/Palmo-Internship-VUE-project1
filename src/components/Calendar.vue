@@ -1,9 +1,11 @@
 <template>
-  <div>
+  <div class="calendar-component">
     <div class="month-navigation">
-      <button @click="previousMonth">Previous month</button>
+      <button class="custom-button" @click="previousMonth">
+        Previous month
+      </button>
       <h2>{{ currentMonth }}</h2>
-      <button @click="nextMonth">Next month</button>
+      <button class="custom-button" @click="nextMonth">Next month</button>
     </div>
 
     <div class="calendar">
@@ -13,7 +15,7 @@
         </div>
       </div>
 
-      <div class="week" v-for="week in weeks">
+      <div class="week" v-for="week in weeksWithEvents">
         <div
           class="day"
           @click="dayClickHandler(day.date)"
@@ -72,11 +74,12 @@
             :style="{'background-color': event.color}"
             @click.stop="goToPage('singleEvent', {id: event.id})"
           >
-            {{ event.title }}
+            <div class="event-title">{{ event.title }}</div>
           </li>
         </ul>
       </template>
     </modal-events>
+
     <modal v-if="isModalVisible">
       <template v-slot:header>
         <h2>Add new event</h2>
@@ -107,6 +110,9 @@
               id="event-end-date"
               v-model="newEvent.endDate"
             />
+            <div v-color:red v-if="errors.endDate" class="invalid-input-error">
+              {{ errors.endDate }}
+            </div>
           </div>
           <div class="form-group">
             <label for="event-repeat">Repeat</label>
@@ -122,7 +128,7 @@
             <input for="event-color" type="color" v-model="newEvent.color" />
           </div>
           <div class="form-group">
-            <label for="event-description">Описание события</label>
+            <label for="event-description">Event description</label>
             <textarea
               class="form-input"
               id="event-description"
@@ -134,8 +140,8 @@
       </template>
       <template v-slot:footer>
         <div class="button-group">
-          <button type="button" @click="closeModal">Отмена</button>
-          <button @click="saveNewEvent">Добавить</button>
+          <button type="button" @click="closeModal">Cancel</button>
+          <button @click="saveNewEvent">Add event</button>
         </div>
       </template>
     </modal>
@@ -150,16 +156,20 @@ import CustomSelect from "@/components/UI/CustomSelect.vue";
 
 import {useEventsStore} from "@/store/events.js";
 import {useAuthorizationStore} from "@/store/authorization.js";
-
+import {usePageStore} from "@/store/page.js";
 import {mapActions, mapState} from "pinia";
+
 import {redirectMixin} from "@/mixins/redirect.js";
 import {modalMixin} from "@/mixins/modal.js";
+import {formValidationMixin} from "@/mixins/formValidation.js";
+
+import {useWeeks} from "@/hooks/useWeeks.js";
+import {useLocalEvents} from "@/hooks/useEvents.js";
 
 export default {
   data() {
     return {
       currentDate: null,
-      displayedMonth: null,
       newEvent: {
         title: null,
         startDate: null,
@@ -168,10 +178,12 @@ export default {
         description: null,
         color: null,
       },
+      errors: {
+        endDate: null,
+      },
       isModalVisible: false,
       isModalEventsVisible: false,
       daysOfWeek: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-      currentEvents: [],
       modalPositionX: 0,
       modalPositionY: 0,
       selectedDay: null,
@@ -184,26 +196,25 @@ export default {
     ModalEvents,
     CustomSelect,
   },
-  mixins: [redirectMixin, modalMixin],
+  mixins: [redirectMixin, modalMixin, formValidationMixin],
   methods: {
-    ...mapActions(useEventsStore, ["saveEvent", "eventsInRange"]),
+    ...mapActions(useEventsStore, ["saveEvent", "fetchHolidays"]),
+    ...mapActions(usePageStore, ["setPageDate"]),
     areDaysEqual(firstDay, secondDay) {
       return firstDay.getTime() == secondDay.getTime();
     },
     saveNewEvent() {
+      this.errors.endDate = this.isEndDateInvalid(
+        this.newEvent.startDate,
+        this.newEvent.endDate
+      );
+      if (this.errors.endDate) {
+        return;
+      }
       this.saveEvent({...this.newEvent});
       this.closeModal();
     },
-    previousMonth() {
-      const newMonth = new Date(this.displayedMonth);
-      newMonth.setMonth(newMonth.getMonth() - 1);
-      this.displayedMonth = newMonth;
-    },
-    nextMonth() {
-      const newMonth = new Date(this.displayedMonth);
-      newMonth.setMonth(newMonth.getMonth() + 1);
-      this.displayedMonth = newMonth;
-    },
+
     moreButtonClick(event, date) {
       this.selectedDay = date;
       this.modalPositionX = event.pageX;
@@ -243,161 +254,52 @@ export default {
       this.newEvent.title = null;
       this.openModal();
     },
-    getEventsForDay(date) {
-      return this.currentEvents.filter((event) => {
-        if (
-          date.getTime() >= event.startDate.getTime() &&
-          date.getTime() <= event.endDate.getTime()
-        ) {
-          return true;
-        }
-
-        if (event.repeat === "annually") {
-          const targetMonthDay = date.getMonth() * 100 + date.getDate();
-          const eventStartMonthDay =
-            event.startDate.getMonth() * 100 + event.startDate.getDate();
-          const eventEndMonthDay =
-            event.endDate.getMonth() * 100 + event.endDate.getDate();
-
-          // Проверяем, находится ли заданный день внутри диапазона дней события
-          return (
-            targetMonthDay >= eventStartMonthDay &&
-            targetMonthDay <= eventEndMonthDay
-          );
-        }
-
-        if (event.repeat === "monthly") {
-          if (event.startDate.getDate() > event.endDate.getDate()) {
-            if (date.getDate() >= event.startDate.getDate()) {
-              return true;
-            }
-            if (date.getDate() <= event.endDate.getDate()) {
-              return true;
-            }
-          }
-          return (
-            date.getDate() >= event.startDate.getDate() &&
-            date.getDate() <= event.endDate.getDate()
-          );
-        }
-        return false;
+    previousMonth() {
+      const newMonth = new Date(this.displayedMonth);
+      newMonth.setMonth(newMonth.getMonth() - 1);
+      if (newMonth.getFullYear() != this.displayedMonth.getFullYear()) {
+        this.fetchHolidays(newMonth.getFullYear(), "UA");
+      }
+      this.displayedMonth = newMonth;
+      this.setPageDate(newMonth.getMonth(), newMonth.getFullYear());
+      this.$router.push({
+        name: "calendar",
+        query: {month: newMonth.getMonth(), year: newMonth.getFullYear()},
+      });
+    },
+    nextMonth() {
+      const newMonth = new Date(this.displayedMonth);
+      newMonth.setMonth(newMonth.getMonth() + 1);
+      if (newMonth.getFullYear() != this.displayedMonth.getFullYear()) {
+        this.fetchHolidays(newMonth.getFullYear(), "UA");
+      }
+      this.displayedMonth = newMonth;
+      
+      this.setPageDate(newMonth.getMonth(), newMonth.getFullYear());
+      this.$router.push({
+        name: "calendar",
+        query: {month: newMonth.getMonth(), year: newMonth.getFullYear()},
       });
     },
   },
+
   computed: {
     ...mapState(useAuthorizationStore, ["user"]),
-    currentMonth() {
-      return this.displayedMonth.toLocaleString("en", {
-        month: "long",
-        year: "numeric",
-      });
-    },
-    ...mapState(useEventsStore, ["events"]),
-    weeks() {
-      const firstDay = new Date(
-        this.displayedMonth.getFullYear(),
-        this.displayedMonth.getMonth(),
-        1
-      );
-      const lastDay = new Date(
-        this.displayedMonth.getFullYear(),
-        this.displayedMonth.getMonth() + 1,
-        0
-      );
-      const daysInMonth = lastDay.getDate();
-      const firstDayOfWeek =
-        firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
-
-      const previousMonthLastDay = new Date(
-        this.displayedMonth.getFullYear(),
-        this.displayedMonth.getMonth(),
-        0
-      ).getDate();
-      let prevMonthDay = previousMonthLastDay - firstDayOfWeek + 1;
-
-      const startDate = new Date(
-        this.displayedMonth.getFullYear(),
-        this.displayedMonth.getMonth() - 1,
-        prevMonthDay
-      );
-      const endDate = new Date(
-        this.displayedMonth.getFullYear(),
-        this.displayedMonth.getMonth() + 1,
-        7 - lastDay.getDay()
-      );
-
-      this.currentEvents = this.eventsInRange(startDate, endDate);
-      const weeks = [];
-      let currentWeek = [];
-
-      for (let i = 0; i < firstDayOfWeek; i++) {
-        currentWeek.push({
-          date: new Date(
-            this.displayedMonth.getFullYear(),
-            this.displayedMonth.getMonth() - 1,
-            prevMonthDay
-          ),
-          events: this.getEventsForDay(
-            new Date(
-              this.displayedMonth.getFullYear(),
-              this.displayedMonth.getMonth() - 1,
-              prevMonthDay
-            )
-          ),
-        });
-        prevMonthDay++;
-      }
-
-      for (let day = 1; day <= daysInMonth; day++) {
-        currentWeek.push({
-          date: new Date(
-            this.displayedMonth.getFullYear(),
-            this.displayedMonth.getMonth(),
-            day
-          ),
-          events: this.getEventsForDay(
-            new Date(
-              this.displayedMonth.getFullYear(),
-              this.displayedMonth.getMonth(),
-              day
-            )
-          ),
-        });
-        if (currentWeek.length === 7) {
-          weeks.push(currentWeek);
-          currentWeek = [];
-        }
-      }
-      if (currentWeek.length == 0) {
-        return weeks;
-      }
-      let nextMonthDay = 1;
-      while (currentWeek.length < 7) {
-        currentWeek.push({
-          date: new Date(
-            this.displayedMonth.getFullYear(),
-            this.displayedMonth.getMonth() + 1,
-            nextMonthDay
-          ),
-          events: this.getEventsForDay(
-            new Date(
-              this.displayedMonth.getFullYear(),
-              this.displayedMonth.getMonth() + 1,
-              nextMonthDay
-            )
-          ),
-        });
-        nextMonthDay++;
-      }
-
-      weeks.push(currentWeek);
-      return weeks;
-    },
+    ...mapState(usePageStore, ["pageYear", "pageMonth"]),
+    ...mapState(useEventsStore, ["events", "eventsWithHolidays"]),
   },
   created() {
     this.currentDate = new Date();
-    this.displayedMonth = new Date();
     this.currentDate.setHours(0, 0, 0, 0);
+  },
+  setup() {
+    const {displayedMonth, weeks, currentMonth} = useWeeks();
+    const {weeksWithEvents} = useLocalEvents(weeks);
+    return {
+      displayedMonth,
+      weeksWithEvents,
+      currentMonth,
+    };
   },
 };
 </script>

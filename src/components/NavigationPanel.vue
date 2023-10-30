@@ -1,16 +1,17 @@
 <template>
   <nav class="navbar">
     <div class="navbar-left">
-      <router-link to="/">Календарь</router-link>
+      <router-link to="/">Calendar</router-link>
     </div>
     <div class="navbar-right">
       <div v-if="user">
-        <span class="user-info">Добро пожаловать, {{ user.displayName }}</span>
-        <button @click="logout">Выход</button>
+        <router-link :to="{name:'user'}">Login</router-link>
+        <span class="user-info">Welcome, {{ user.displayName }}</span>
+        <button @click="logoutHandler">Logout</button>
       </div>
       <div v-else>
-        <router-link to="/login">Вход</router-link>
-        <router-link to="/register">Регистрация</router-link>
+        <router-link :to="{name:'login'}">Login</router-link>
+        <router-link to="/register">Register</router-link>
       </div>
     </div>
   </nav>
@@ -18,20 +19,18 @@
 
 <script>
 import {useAuthorizationStore} from "@/store/authorization.js";
+import {useEventsStore} from "@/store/events.js";
 import {mapActions, mapState} from "pinia";
 export default {
-  data() {
-    return {
-      currentUser: null,
-    };
-  },
   computed: {
     ...mapState(useAuthorizationStore, ["user"]),
   },
   methods: {
     ...mapActions(useAuthorizationStore, ["logout"]),
+    ...mapActions(useEventsStore, ["clearEvents"]),
     logoutHandler() {
-      logout();
+      this.clearEvents();
+      this.logout();
       this.$router.push({
         name: "calendar",
       });

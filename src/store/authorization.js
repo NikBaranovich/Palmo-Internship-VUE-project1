@@ -32,19 +32,8 @@ export const useAuthorizationStore = defineStore("authorization", {
       try {
         await createUserWithEmailAndPassword(auth, email, password);
       } catch (error) {
-        console.log(error.code);
-        switch (error.code) {
-          case "auth/invalid-email":
-            return "Invalid Email";
-          case "auth/wrong-password":
-            return "Incorrect Password";
-          case "auth/weak-password":
-            return "Password is too weak";
-          default:
-            return "Email or password was incorrect";
-        }
+        return error.code;
       }
-      console.log("Successfully registered!");
       await updateProfile(auth.currentUser, {
         displayName: username,
       });
