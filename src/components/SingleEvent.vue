@@ -1,18 +1,22 @@
 <template>
   <div class="event-info" v-if="event">
-    <div :style="{background: event.color}" class="event-color"></div>
+    <div class="event-color" :style="{background: event.color}"></div>
     <div class="event-details">
-      <h2>{{ event.title }}</h2>
-      <p>Start: {{ event.startDate }}</p>
-      <p>End: {{ event.endDate }}</p>
-      <p>Repeat: {{ event.repeat }}</p>
-      <p>Description: {{ event.description }}</p>
+      <h2 class="event-title">{{ event.title }}</h2>
+      <p class="event-time">Start: {{ event.startDate }}</p>
+      <p class="event-time">End: {{ event.endDate }}</p>
+      <p class="event-repeat">Repeat: {{ event.repeat }}</p>
+      <p class="event-description">Description: {{ event.description }}</p>
     </div>
-    <div>
-      <button class="custom-button" @click="editClickHandler">Edit</button>
-      <button class="custom-button" @click="deleteEventHandler">Delete</button>
+    <div class="button-container">
+      <button class="custom-button edit-button" @click="editClickHandler">
+        Edit
+      </button>
+      <button class="custom-button delete-button" @click="deleteEventHandler">
+        Delete
+      </button>
     </div>
-    <modal v-if="isModalVisible">
+    <modal v-if="isModalVisible" @close="isModalVisible = false">
       <template v-slot:header>
         <h2>Edit event</h2>
       </template>
@@ -76,6 +80,7 @@
 </template>
 <script>
 import {useEventsStore} from "@/store/events.js";
+import {usePageStore} from "@/store/page.js";
 import {mapActions, mapState} from "pinia";
 import Modal from "@/components/Modal.vue";
 import CustomSelect from "@/components/UI/CustomSelect.vue";
@@ -115,13 +120,24 @@ export default {
       this.editEvent(this.event.id, {...this.editedEvent});
       this.closeModal();
     },
-    deleteEventHandler() {
-      this.deleteEvent(this.event.id);
-      this.goToPage("calendar");
+    async deleteEventHandler() {
+      const error = await this.deleteEvent(this.event.id);
+      if (error) {
+        return;
+      }
+      console.log(this.pageMonth);
+      this.$router.push({
+        name: "calendar",
+        query: {
+          month: this.pageMonth,
+          year: this.pageYear,
+        },
+      });
     },
   },
   computed: {
     ...mapState(useEventsStore, ["events", "eventsWithHolidays"]),
+    ...mapState(usePageStore, ["pageYear", "pageMonth"]),
     event() {
       const id = this.$route.params.id;
       return this.eventsWithHolidays.find((event) => event.id == id);
@@ -132,24 +148,83 @@ export default {
 
 <style scoped>
 .event-info {
-  margin: 20px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  background-color: #fff;
+  transition: all 0.3s ease;
+  margin: 10px;
+  margin-top: 30px;
 }
 
 .event-color {
-  width: 30px;
-  height: 30px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
-  margin-right: 10px;
+  margin-right: 30px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .event-details {
   flex: 1;
 }
-.event-details h2 {
-  font-size: 20px;
+
+.event-title {
+  font-size: 28px;
+  margin: 0;
+  color: #333;
 }
 
-.event-details p {
+.event-time {
   margin: 5px 0;
+  color: #666;
+}
+
+.event-repeat {
+  color: #666;
+}
+
+.event-description {
+  font-style: italic;
+  color: #777;
+}
+
+.button-container {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.edit-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+  background-color: #2ecc71;
+  color: white;
+}
+
+.delete-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+  background-color: #e74c3c;
+  color: white;
+}
+
+.delete-button:hover,
+.edit-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 </style>

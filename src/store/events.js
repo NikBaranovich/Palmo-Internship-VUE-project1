@@ -10,8 +10,7 @@ import {
 import {getAuth, onAuthStateChanged} from "firebase/auth";
 import {db} from "@/firebase/index.js";
 import axiosInstanse from "@/services/axios.js";
-import {toast} from 'vue3-toastify'
-import "vue3-toastify/dist/index.css";
+import {toast} from "vue3-toastify";
 
 export const useEventsStore = defineStore("events", {
   state: () => ({
@@ -49,65 +48,93 @@ export const useEventsStore = defineStore("events", {
           });
         })
         .catch((error) => {
-          console.log(error);
+          toast.error(`Error while fetching holidays. ${error.message}`);
         });
     },
-    fetchEvents() {
+    getCurrentUser() {
       const auth = getAuth();
-      onAuthStateChanged(auth, async (user) => {
-        if (!user || !user.emailVerified) {
-          return;
-        }
+      return new Promise((resolve, reject) => {
+        const unsubscribe = onAuthStateChanged(
+          auth,
+          (user) => {
+            unsubscribe();
+            resolve(user);
+          },
+          reject
+        );
+      });
+    },
+    async fetchEvents() {
+      const user = await this.getCurrentUser();
+      if (!user || !user.emailVerified) {
+        return;
+      }
+      try {
         const userCollectionRef = collection(db, `users/${user.uid}/events`);
         const GroupDoc = await getDocs(userCollectionRef);
         GroupDoc.forEach((item) => {
-          this.eventsState.push({id: item.id, ...item.data()});
+          const startDate = new Date(item.data().startDate.seconds * 1000);
+          const endDate = new Date(item.data().endDate.seconds * 1000);
+
+          this.eventsState.push({
+            id: item.id,
+            ...item.data(),
+            startDate,
+            endDate,
+          });
         });
-        this.eventsState = this.eventsState.map((element) => {
-          element.startDate = new Date(element.startDate.seconds * 1000);
-          element.endDate = new Date(element.endDate.seconds * 1000);
-          return element;
-        });
-      });
+      } catch (error) {
+        toast.error(
+          `An error occurred while fetching events. ${error.message}`
+        );
+        return;
+      }
     },
-    saveEvent(newEvent) {
+    async saveEvent(newEvent) {
       const auth = getAuth();
       if (!auth.currentUser) {
         return;
       }
-      addDoc(collection(db, `users/${auth.currentUser.uid}/events`), newEvent)
-        .then((data) => {
-          this.eventsState.push({id: data.id, ...newEvent});
-          console.log("toast");
-          toast.success("New event added!");
-        })
-        .catch((error) => {
-          return error.code;
-        });
+      try {
+        const data = await addDoc(
+          collection(db, `users/${auth.currentUser.uid}/events`),
+          newEvent
+        );
+        this.eventsState.push({id: data.id, ...newEvent});
+        toast.success("New event added!");
+      } catch (error) {
+        toast.error(error.message);
+      }
     },
-    editEvent(id, event) {
+    async editEvent(id, updatedEvent) {
       const auth = getAuth();
       if (!auth.currentUser) {
         return;
       }
-      const docRef = doc(db, `users/${auth.currentUser.uid}/events`, id);
-      setDoc(docRef, event)
-        .then(() => {
-          const ev = this.eventsState.find((event) => event.id == id);
-          Object.assign(ev, event);
-        })
-        .catch((error) => {
-          return error.code;
-        });
+      try {
+        const docRef = doc(db, `users/${auth.currentUser.uid}/events`, id);
+        await setDoc(docRef, updatedEvent);
+        toast.success("Event updated!");
+        const event = this.eventsState.find((event) => event.id == id);
+        Object.assign(event, updatedEvent);
+      } catch (error) {
+        toast.error(error.message);
+      }
     },
-    deleteEvent(id) {
+    async deleteEvent(id) {
       const auth = getAuth();
       if (!auth.currentUser) {
         return;
       }
-      deleteDoc(doc(db, `users/${auth.currentUser.uid}/events`, id));
+      try {
+        await deleteDoc(doc(db, `users/${auth.currentUser.uid}/events`, id));
+      } catch (error) {
+        toast.error(error.message);
+        return error;
+      }
       const ev = this.eventsState.find((event) => event.id == id);
       this.eventsState.splice(this.eventsState.indexOf(ev), 1);
+      return;
     },
   },
 });

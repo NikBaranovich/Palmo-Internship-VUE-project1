@@ -24,7 +24,10 @@
             'outside-month': day.date.getMonth() != displayedMonth.getMonth(),
           }"
         >
-          <div class= "day-number" :class="{'current-day': areDaysEqual(day.date, currentDate)}">
+          <div
+            class="day-number"
+            :class="{'current-day': areDaysEqual(day.date, currentDate)}"
+          >
             {{ day.date.getDate() }}
           </div>
           <div class="events">
@@ -32,7 +35,7 @@
               class="event"
               v-for="event in [...day.events].splice(0, 2)"
               :style="{'background-color': event.color}"
-              @click.stop="goToPage('singleEvent', {id: event.id})"
+              @click.stop="openSingleEvent(event.id)"
             >
               <div class="event-title">{{ event.title }}</div>
             </div>
@@ -80,7 +83,7 @@
       </template>
     </modal-events>
 
-    <modal v-if="isModalVisible">
+    <modal v-if="isModalVisible" @close="isModalVisible = false">
       <template v-slot:header>
         <h2>Add new event</h2>
       </template>
@@ -140,8 +143,8 @@
       </template>
       <template v-slot:footer>
         <div class="button-group">
-          <button type="button" @click="closeModal">Cancel</button>
-          <button @click="saveNewEvent">Add event</button>
+          <button class="custom-button" @click="closeModal">Cancel</button>
+          <button class="custom-button" @click="saveNewEvent">Add event</button>
         </div>
       </template>
     </modal>
@@ -149,6 +152,8 @@
 </template>
 
 <script>
+import {toast} from "vue3-toastify";
+
 import Modal from "@/components/Modal.vue";
 import ModalEvents from "@/components/ModalEvents.vue";
 import CustomDateInput from "@/components/UI/CustomDateInput.vue";
@@ -202,6 +207,14 @@ export default {
     ...mapActions(usePageStore, ["setPageDate"]),
     areDaysEqual(firstDay, secondDay) {
       return firstDay.getTime() == secondDay.getTime();
+    },
+    openSingleEvent(id) {
+      const isHoliday = this.holidays.find((holiday) => holiday.id == id);
+      if (isHoliday) {
+        toast.warning("Holidays cannot be modified!");
+        return;
+      }
+      this.goToPage("singleEvent", {id});
     },
     saveNewEvent() {
       this.errors.endDate = this.isEndDateInvalid(
@@ -286,7 +299,7 @@ export default {
   computed: {
     ...mapState(useAuthorizationStore, ["user"]),
     ...mapState(usePageStore, ["pageYear", "pageMonth"]),
-    ...mapState(useEventsStore, ["events", "eventsWithHolidays"]),
+    ...mapState(useEventsStore, ["events", "holidays", "eventsWithHolidays"]),
   },
   created() {
     this.currentDate = new Date();

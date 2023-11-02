@@ -44,7 +44,7 @@ export default {
 .navbar {
   display: flex;
   justify-content: space-between;
-  background-color: #007bff;
+  background-color: var(--secondary-color);
   color: #fff;
   padding: 10px;
 }
@@ -66,8 +66,9 @@ export default {
 
 .navbar-right button {
   background-color: #fff;
-  color: #007bff;
+  color: var(--secondary-color);;
   border: none;
+  border-radius: 5px;
   padding: 5px 10px;
   cursor: pointer;
 }

@@ -59,7 +59,12 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   if (to.matched.some((record) => record.name == "singleEvent")) {
     const eventsStore = useEventsStore();
-
+    if (!(await getCurrentUser())) {
+      next({name: "notFound"});
+    }
+    if(!eventsStore.events.length){
+      await eventsStore.fetchEvents()
+    }
     const hasEvent = eventsStore.events.find(
       (event) => event.id == to.params.id
     );

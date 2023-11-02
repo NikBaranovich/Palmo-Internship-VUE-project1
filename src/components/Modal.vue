@@ -1,6 +1,6 @@
 <template>
-  <div class="modal">
-    <div class="modal-content">
+  <div class="modal" @click="$emit('close')">
+    <div class="modal-content" @click.stop>
       <div class="modal-header">
         <slot name="header"></slot>
       </div>
@@ -30,17 +30,19 @@
 .modal-content {
   background-color: #fff;
   width: 400px;
-  border-radius: 4px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  overflow: hidden;
 }
 
 .modal-header {
-  background-color: #007bff;
+  background-color: var(--secondary-color);
   color: #fff;
   padding: 10px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+ 
 }
 
 .modal-header h2 {
@@ -55,5 +57,4 @@
   padding: 10px;
   text-align: right;
 }
-
 </style>

@@ -9,6 +9,7 @@ import NavigationPanel from "@/components/NavigationPanel.vue";
 import {useAuthorizationStore} from "@/store/authorization.js";
 import {mapActions, mapState} from "pinia";
 import {useEventsStore} from "@/store/events.js";
+import "vue3-toastify/dist/index.css";
 
 export default {
   data() {
@@ -27,6 +28,9 @@ export default {
       "fetchEvents",
       "fetchHolidays",
     ]),
+  },
+  computed: {
+    ...mapState(useEventsStore, ["events"]),
   },
   mounted() {
     this.auth();

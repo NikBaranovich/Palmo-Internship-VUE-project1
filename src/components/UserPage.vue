@@ -1,6 +1,6 @@
 <template>
   <div class="user-profile">
-    <div class="user-profile-info" v-if="user">
+    <!-- <div class="user-profile-info" v-if="user">
       <img
         :src="
           user.photoURL ||
@@ -12,13 +12,45 @@
         <h2>{{ user.displayName }}</h2>
         <p>{{ user.email }}</p>
       </div>
+    </div> -->
+    <div class="padding">
+      <div class="col-md-8">
+        <div class="card">
+          <div class="card-img-top" alt="Card image cap"></div>
+          <div class="card-body little-profile text-center">
+            <div class="pro-img">
+              <div class="image-container">
+                <img
+                  class="image"
+                  :src="
+                    user.photoURL ||
+                    'https://avatars.dicebear.com/api/adventurer-neutral/mail%40ashallendesign.co.uk.svg'
+                  "
+                  alt="User Photo"
+                />
+                <div class="overlay" @click="isImageModalOpen = true">
+                  <img
+                    class="camera-img"
+                    src="https://www.gstatic.com/images/icons/material/system/2x/photo_camera_white_24dp.png"
+                  />
+                </div>
+              </div>
+            </div>
+            <h3 class="m-b-0">
+              {{ user.displayName }}
+              <img
+                class="edit-name-image"
+                src="@/assets/images/pencil-solid.svg"
+                @click="isNameModalOpen = true"
+              />
+            </h3>
+            <p>{{ user.email }}</p>
+          </div>
+          <button class="custom-button" @click="isPasswordModalOpen = true">Edit password</button>
+        </div>
+      </div>
     </div>
-    <div class="user-profile-actions">
-      <button @click="isNameModalOpen = true">Edit username</button>
-      <button @click="isImageModalOpen = true">Edit image</button>
 
-      <button @click="isPasswordModalOpen = true">Edit password</button>
-    </div>
     <modal v-if="isNameModalOpen">
       <template v-slot:header>
         <h2>Edit Username</h2>
@@ -49,9 +81,16 @@
       </template>
       <template v-slot:body>
         <div>
-          <div class="form-group">
-            <label for="image-file">Upload new image</label>
-            <input type="file" id="image-file" @change="getFile" />
+          <div class="">
+            <label class="form-label" for="image-file"
+              >Select a new image</label
+            >
+            <input
+              class="form-control"
+              type="file"
+              id="image-file"
+              @change="getFile"
+            />
             <div v-color:red v-if="fileError" class="invalid-input-error">
               {{ fileError }}
             </div>
@@ -135,7 +174,7 @@ export default {
       this.updateUserName(this.username);
       this.isNameModalOpen = false;
     },
-    handleUpdatePassword(){
+    handleUpdatePassword() {
       this.passwordError = this.isPasswordInvalid(this.password);
       if (this.passwordError) {
         return;
@@ -166,35 +205,159 @@ export default {
 };
 </script>
 <style scoped>
-.user-profile {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px;
-}
-
-.user-profile-info {
+.padding {
+  padding: 3rem !important;
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
-.user-profile-info img {
-  width: 100px;
-  height: 100px;
+.card-img-top {
+  height: 200px;
+  background-color: #455a64;
+}
+
+.card-no-border .card {
+  border-color: #d7dfe3;
+  border-radius: 4px;
+  margin-bottom: 30px;
+  -webkit-box-shadow: 0px 5px 20px rgba(0, 0, 0, 0.05);
+  box-shadow: 0px 5px 20px rgba(0, 0, 0, 0.05);
+}
+
+.card-body {
+  -ms-flex: 1 1 auto;
+  flex: 1 1 auto;
+  padding: 1.25rem;
+}
+
+.pro-img {
+  margin-top: -130px;
+  margin-bottom: 20px;
+}
+
+.little-profile .pro-img .image {
+  width: 180px;
+  height: 180px;
+  -webkit-box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  border-radius: 100%;
+}
+
+html body .m-b-0 {
+  margin-bottom: 0px;
+}
+
+h3 {
+  line-height: 30px;
+  font-size: 21px;
+}
+
+.btn-rounded.btn-md {
+  padding: 12px 35px;
+  font-size: 16px;
+}
+
+html body .m-t-10 {
+  margin-top: 10px;
+}
+
+.btn-primary,
+.btn-primary.disabled {
+  background: #7460ee;
+  border: 1px solid #7460ee;
+  -webkit-box-shadow: 0 2px 2px 0 rgba(116, 96, 238, 0.14),
+    0 3px 1px -2px rgba(116, 96, 238, 0.2), 0 1px 5px 0 rgba(116, 96, 238, 0.12);
+  box-shadow: 0 2px 2px 0 rgba(116, 96, 238, 0.14),
+    0 3px 1px -2px rgba(116, 96, 238, 0.2), 0 1px 5px 0 rgba(116, 96, 238, 0.12);
+  -webkit-transition: 0.2s ease-in;
+  -o-transition: 0.2s ease-in;
+  transition: 0.2s ease-in;
+}
+
+.btn-rounded {
+  border-radius: 60px;
+  padding: 7px 18px;
+}
+
+.m-t-20 {
+  margin-top: 20px;
+}
+
+.text-center {
+  text-align: center !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+}
+
+p {
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+.pro-img {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.image-container {
+  position: relative;
+  overflow: hidden;
   border-radius: 50%;
-  margin-right: 20px;
+  overflow: hidden;
+  width: 180px;
+  height: 180px;
 }
 
-.user-profile-actions button {
-  background-color: #007bff;
+img {
+  width: 100%;
+  height: auto;
+  transition: transform 0.3s;
+}
+
+.overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 10px;
+  transform: translateY(100%);
+  transition: transform 0.3s;
+  cursor: pointer;
+}
+
+.edit-button {
+  background-color: #3498db;
   color: #fff;
   border: none;
-  padding: 10px 20px;
+  padding: 5px 10px;
   cursor: pointer;
-  margin-right: 10px;
+  border-radius: 5px;
 }
 
-.user-profile-actions button:hover {
-  background-color: #0056b3;
+.image-container:hover .overlay {
+  transform: translateY(0);
+}
+.camera-img {
+  width: 30px;
+  height: 30px;
+}
+.edit-name-image {
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+.custom-button{
+  max-width: 200px;
+  margin: 10px auto;
 }
 </style>
