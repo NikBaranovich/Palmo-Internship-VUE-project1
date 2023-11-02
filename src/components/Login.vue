@@ -16,6 +16,9 @@
     <button @click="signInWithGoogleHandler" class="google-button">
       Sign In with Google
     </button>
+    <div>
+      <router-link :to="{name: 'forgot'}">Forgot your password?</router-link>
+    </div>
   </div>
 </template>
 <script>
@@ -32,11 +35,17 @@ export default {
   },
   computed: {
     ...mapState(usePageStore, ["pageYear", "pageMonth"]),
+    ...mapState(useAuthorizationStore, ["userCacheEmail"]),
+  },
+  mounted() {
+    this.email = this.userCacheEmail;
   },
   methods: {
     ...mapActions(useAuthorizationStore, ["signIn", "signInWithGoogle"]),
     async signInWithGoogleHandler() {
-      await this.signInWithGoogle();
+      if (await this.signInWithGoogle()) {
+        return;
+      }
       this.$router.push({
         name: "calendar",
         query: {
@@ -66,7 +75,7 @@ export default {
   max-width: 400px;
   margin: 0 auto;
   padding: 20px;
-  border: 1px solid #ccc;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   border-radius: 5px;
   text-align: center;
 }

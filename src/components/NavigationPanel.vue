@@ -1,17 +1,18 @@
 <template>
   <nav class="navbar">
     <div class="navbar-left">
-      <router-link to="/">Calendar</router-link>
+      <router-link :to="{name: 'calendar'}">Calendar</router-link>
     </div>
     <div class="navbar-right">
       <div v-if="user">
-        <router-link :to="{name:'user'}">Login</router-link>
-        <span class="user-info">Welcome, {{ user.displayName }}</span>
+        <router-link :to="{name: 'user'}" class="user-info"
+          >Welcome, {{ user.displayName}}</router-link
+        >
         <button @click="logoutHandler">Logout</button>
       </div>
       <div v-else>
-        <router-link :to="{name:'login'}">Login</router-link>
-        <router-link to="/register">Register</router-link>
+        <router-link :to="{name: 'login'}">Login</router-link>
+        <router-link :to="{name: 'register'}">Register</router-link>
       </div>
     </div>
   </nav>

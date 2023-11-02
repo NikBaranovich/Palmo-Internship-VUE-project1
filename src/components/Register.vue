@@ -1,37 +1,53 @@
 <template>
-  <div class="registration-form">
-    <h2>Registration</h2>
-    <form @submit.prevent="registerFormSubmit" class="form">
-      <div class="form-group">
-        <label for="email">Username:</label>
-        <input type="text" id="username" v-model="username" required />
-        <div v-color:red v-if="errors.username" class="invalid-input-error">
-          {{ errors.username }}
+  <div>
+    <div class="registration-form">
+      <h2>Registration</h2>
+      <form @submit.prevent="registerFormSubmit" class="form">
+        <div class="form-group">
+          <label for="email">Username:</label>
+          <input type="text" id="username" v-model="username" required />
+          <div v-color:red v-if="errors.username" class="invalid-input-error">
+            {{ errors.username }}
+          </div>
         </div>
-      </div>
-      <div class="form-group">
-        <label for="email">Email:</label>
-        <input type="email" id="email" v-model="email" required />
-        <div v-color:red v-if="errors.email" class="invalid-input-error">
-          {{ errors.email }}
+        <div class="form-group">
+          <label for="email">Email:</label>
+          <input type="email" id="email" v-model="email" required />
+          <div v-color:red v-if="errors.email" class="invalid-input-error">
+            {{ errors.email }}
+          </div>
         </div>
-      </div>
-      <div class="form-group">
-        <label for="password">Password:</label>
-        <input type="password" id="password" v-model="password" required />
-        <div v-color:red v-if="errors.password" class="invalid-input-error">
-          {{ errors.password }}
+        <div class="form-group">
+          <label for="password">Password:</label>
+          <input type="password" id="password" v-model="password" required />
+          <div v-color:red v-if="errors.password" class="invalid-input-error">
+            {{ errors.password }}
+          </div>
         </div>
+        <div class="error" v-if="error">{{ error }}</div>
+        <button type="submit" class="register-button">Register</button>
+      </form>
+      <button @click="signInWithGoogleHandler" class="google-button">
+        Register with Google
+      </button>
+      <div>
+        Already have an account?
+        <router-link :to="{name: 'login'}"> Login</router-link>
       </div>
-      <div class="error" v-if="error">{{ error }}</div>
-      <button type="submit" class="register-button">Register</button>
-    </form>
-    <button @click="signInWithGoogleHandler" class="google-button">
-      Register with Google
-    </button>
-    <button @click="$router.push({name: 'login'})">
-      Already have an account? Login
-    </button>
+    </div>
+    <modal-message v-if="isModalVisible">
+      <template v-slot:header>
+        <h2>Last one step</h2>
+      </template>
+      <template v-slot:content>
+        <p>
+          Click the link we sent to {{ email }} to complete your account set-up.
+        </p>
+      </template>
+      <template v-slot:buttons>
+        <button class="message-button" @click="closeModal">Got It!</button>
+      </template>
+    </modal-message>
   </div>
 </template>
 <script>
@@ -40,6 +56,7 @@ import {usePageStore} from "@/store/page.js";
 import {formValidationMixin} from "@/mixins/formValidation.js";
 import {redirectMixin} from "@/mixins/redirect.js";
 
+import ModalMessage from "@/components//ModalMessage.vue";
 import {mapActions, mapState} from "pinia";
 export default {
   data() {
@@ -53,17 +70,33 @@ export default {
         email: null,
         password: null,
       },
+      isModalVisible: false,
     };
   },
   computed: {
     ...mapState(usePageStore, ["pageYear", "pageMonth"]),
   },
+  components: {
+    ModalMessage,
+  },
   mixins: [formValidationMixin, redirectMixin],
   methods: {
-    ...mapActions(useAuthorizationStore, ["register", "signInWithGoogle"]),
+    ...mapActions(useAuthorizationStore, [
+      "register",
+      "signInWithGoogle",
+      "setUserCacheEmail",
+    ]),
+    closeModal() {
+      this.isModalVisible = false;
+      this.setUserCacheEmail(this.email);
+      this.$router.push({
+        name: "login",
+      });
+    },
     async signInWithGoogleHandler() {
-      console.log(this.pageYear, this.pageMonth);
-      await this.signInWithGoogle();
+      if (await this.signInWithGoogle()) {
+        return;
+      }
       this.$router.push({
         name: "calendar",
         query: {
@@ -87,13 +120,7 @@ export default {
       if (this.error) {
         return;
       }
-      this.$router.push({
-        name: "calendar",
-        query: {
-          month: this.pageMonth,
-          year: this.pageYear,
-        },
-      });
+      this.isModalVisible = true;
     },
   },
 };
@@ -103,7 +130,7 @@ export default {
   max-width: 400px;
   margin: 0 auto;
   padding: 20px;
-  border: 1px solid #ccc;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   border-radius: 5px;
   text-align: center;
 }
@@ -146,5 +173,13 @@ input {
   border-radius: 5px;
   cursor: pointer;
   margin-top: 10px;
+}
+.message-button {
+  background: #2980b9;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
 }
 </style>

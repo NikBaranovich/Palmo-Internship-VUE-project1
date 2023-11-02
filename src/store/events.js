@@ -26,7 +26,7 @@ export const useEventsStore = defineStore("events", {
     clearEvents() {
       this.eventsState = [];
     },
-    
+
     fetchHolidays(year, countryCode) {
       this.holidaysState = [];
       let id = 1;
@@ -53,15 +53,14 @@ export const useEventsStore = defineStore("events", {
     fetchEvents() {
       const auth = getAuth();
       onAuthStateChanged(auth, async (user) => {
-        if (!user) {
+        if (!user || !user.emailVerified ) {
           return;
         }
         const userCollectionRef = collection(db, `users/${user.uid}/events`);
         const GroupDoc = await getDocs(userCollectionRef);
-
-        GroupDoc.forEach((item) =>
-          this.eventsState.push({id: item.id, ...item.data()})
-        );
+        GroupDoc.forEach((item) => {
+          this.eventsState.push({id: item.id, ...item.data()});
+        });
         this.eventsState = this.eventsState.map((element) => {
           element.startDate = new Date(element.startDate.seconds * 1000);
           element.endDate = new Date(element.endDate.seconds * 1000);

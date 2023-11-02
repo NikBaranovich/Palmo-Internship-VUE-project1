@@ -6,6 +6,7 @@ import Login from "@/components/Login.vue";
 import AccessDenied from "@/components/AccessDenied.vue";
 import NotFound from "@/components/NotFound.vue";
 import UserPage from "@/components/UserPage.vue";
+import ForgotPassword from "@/components/ForgotPassword.vue";
 const SingleEvent = () => import("@/components/SingleEvent.vue");
 
 import {useEventsStore} from "@/store/events.js";
@@ -28,6 +29,7 @@ const routes = [
     path: "/login",
     name: "login",
     component: Login,
+    props: true,
     meta: {requireNoAuth: true},
   },
   {
@@ -35,6 +37,11 @@ const routes = [
     name: "user",
     component: UserPage,
     meta: {requireAuth: true},
+  },
+  {
+    path: "/forgot",
+    name: "forgot",
+    component: ForgotPassword,
   },
   {path: "/events/:id", name: "singleEvent", component: SingleEvent},
   {
