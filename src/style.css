@@ -1,4 +1,10 @@
 
+body{
+  height: 100vh;
+}
+#app{
+  height: 100%;
+}
 .close-button {
   cursor: pointer;
 }
@@ -50,7 +56,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin: 10px;
 }
 .day-names {
   background-color: #f0f0f0;
@@ -82,7 +88,16 @@
   min-height: 90px;
 }
 .current-day {
-  background-color: #fbfad4;
+  background-color:#007bff;
+  color: white ;
+  border-radius: 50%;
+}
+.day-number{
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+  display: inline-block;
+  text-align: center;
 }
 .day:hover {
   cursor: pointer;
@@ -155,8 +170,4 @@
 
 .close-button:hover {
   color: #333;
-}
-
-.calendar-component{
-  margin-top: 10px;
 }

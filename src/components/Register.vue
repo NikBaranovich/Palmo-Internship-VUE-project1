@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="registration">
     <div class="registration-form">
       <h2>Registration</h2>
       <form @submit.prevent="registerFormSubmit" class="form">
@@ -126,9 +126,14 @@ export default {
 };
 </script>
 <style scoped>
+.registration{
+  display: flex;
+  height: 100%;
+  justify-content: center;
+  align-items: center;
+}
 .registration-form {
-  max-width: 400px;
-  margin: 0 auto;
+  width: 400px;
   padding: 20px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   border-radius: 5px;

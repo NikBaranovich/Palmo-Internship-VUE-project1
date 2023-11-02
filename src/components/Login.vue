@@ -1,23 +1,25 @@
 <template>
-  <div class="sign-in-form">
-    <h2>Sign In</h2>
-    <form @submit.prevent="signInFormSubmit" class="form">
-      <div class="form-group">
-        <label for="email">Email:</label>
-        <input type="email" id="email" v-model="email" required />
+  <div class="sign-in">
+    <div class="sign-in-form">
+      <h2>Sign In</h2>
+      <form @submit.prevent="signInFormSubmit" class="form">
+        <div class="form-group">
+          <label for="email">Email:</label>
+          <input type="email" id="email" v-model="email" required />
+        </div>
+        <div class="form-group">
+          <label for="password">Password:</label>
+          <input type="password" id="password" v-model="password" required />
+        </div>
+        <div class="error" v-if="error">{{ error }}</div>
+        <button type="submit" class="sign-in-button">Sign In</button>
+      </form>
+      <button @click="signInWithGoogleHandler" class="google-button">
+        Sign In with Google
+      </button>
+      <div>
+        <router-link :to="{name: 'forgot'}">Forgot your password?</router-link>
       </div>
-      <div class="form-group">
-        <label for="password">Password:</label>
-        <input type="password" id="password" v-model="password" required />
-      </div>
-      <div class="error" v-if="error">{{ error }}</div>
-      <button type="submit" class="sign-in-button">Sign In</button>
-    </form>
-    <button @click="signInWithGoogleHandler" class="google-button">
-      Sign In with Google
-    </button>
-    <div>
-      <router-link :to="{name: 'forgot'}">Forgot your password?</router-link>
     </div>
   </div>
 </template>
@@ -71,9 +73,14 @@ export default {
 };
 </script>
 <style>
+.sign-in {
+  display: flex;
+  height: 100%;
+  justify-content: center;
+  align-items: center;
+}
 .sign-in-form {
-  max-width: 400px;
-  margin: 0 auto;
+  width: 400px;
   padding: 20px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   border-radius: 5px;

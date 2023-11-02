@@ -1,5 +1,5 @@
 <template lang="">
-  <div>
+  <div class="content">
     <navigation-panel />
     <router-view></router-view>
   </div>
@@ -37,3 +37,10 @@ export default {
   },
 };
 </script>
+<style scoped>
+.content {
+  display: flex;
+  flex-flow: column;
+  height: 100%;
+}
+</style>

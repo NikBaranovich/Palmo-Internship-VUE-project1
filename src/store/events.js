@@ -10,6 +10,8 @@ import {
 import {getAuth, onAuthStateChanged} from "firebase/auth";
 import {db} from "@/firebase/index.js";
 import axiosInstanse from "@/services/axios.js";
+import {toast} from 'vue3-toastify'
+import "vue3-toastify/dist/index.css";
 
 export const useEventsStore = defineStore("events", {
   state: () => ({
@@ -53,7 +55,7 @@ export const useEventsStore = defineStore("events", {
     fetchEvents() {
       const auth = getAuth();
       onAuthStateChanged(auth, async (user) => {
-        if (!user || !user.emailVerified ) {
+        if (!user || !user.emailVerified) {
           return;
         }
         const userCollectionRef = collection(db, `users/${user.uid}/events`);
@@ -76,6 +78,8 @@ export const useEventsStore = defineStore("events", {
       addDoc(collection(db, `users/${auth.currentUser.uid}/events`), newEvent)
         .then((data) => {
           this.eventsState.push({id: data.id, ...newEvent});
+          console.log("toast");
+          toast.success("New event added!");
         })
         .catch((error) => {
           return error.code;

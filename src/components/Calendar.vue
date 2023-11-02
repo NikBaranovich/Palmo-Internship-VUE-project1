@@ -22,11 +22,11 @@
           v-for="day in week"
           :class="{
             'outside-month': day.date.getMonth() != displayedMonth.getMonth(),
-            'current-day': areDaysEqual(day.date, currentDate),
           }"
         >
-          {{ day.date.getDate() }}
-
+          <div class= "day-number" :class="{'current-day': areDaysEqual(day.date, currentDate)}">
+            {{ day.date.getDate() }}
+          </div>
           <div class="events">
             <div
               class="event"
@@ -274,7 +274,7 @@ export default {
         this.fetchHolidays(newMonth.getFullYear(), "UA");
       }
       this.displayedMonth = newMonth;
-      
+
       this.setPageDate(newMonth.getMonth(), newMonth.getFullYear());
       this.$router.push({
         name: "calendar",
