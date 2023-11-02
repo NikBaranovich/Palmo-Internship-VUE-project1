@@ -97,6 +97,9 @@
               id="event-title"
               v-model="newEvent.title"
             />
+            <div v-color:red v-if="errors.title" class="invalid-input-error">
+              {{ errors.title }}
+            </div>
           </div>
           <div class="form-group">
             <label for="event-start-date">Start date</label>
@@ -126,9 +129,13 @@
               :options="repeatOptions"
             />
           </div>
-          <div>
-            <label for="event-color">Event color</label>
-            <input for="event-color" type="color" v-model="newEvent.color" />
+          <div class="form-group">
+            <label for="event-color" class="mb-2">Event color</label>
+            <input
+              class="form-control form-control-color"
+              type="color"
+              v-model="newEvent.color"
+            />
           </div>
           <div class="form-group">
             <label for="event-description">Event description</label>
@@ -184,6 +191,7 @@ export default {
         color: null,
       },
       errors: {
+        title: "",
         endDate: null,
       },
       isModalVisible: false,
@@ -217,11 +225,16 @@ export default {
       this.goToPage("singleEvent", {id});
     },
     saveNewEvent() {
+      if (!this.newEvent.title) {
+        this.errors.title = "Title is required";
+      } else {
+        this.errors.title = "";
+      }
       this.errors.endDate = this.isEndDateInvalid(
         this.newEvent.startDate,
         this.newEvent.endDate
       );
-      if (this.errors.endDate) {
+      if (this.errors.endDate || this.errors.title) {
         return;
       }
       this.saveEvent({...this.newEvent});

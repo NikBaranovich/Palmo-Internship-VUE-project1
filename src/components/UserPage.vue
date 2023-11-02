@@ -1,18 +1,5 @@
 <template>
   <div class="user-profile">
-    <!-- <div class="user-profile-info" v-if="user">
-      <img
-        :src="
-          user.photoURL ||
-          'https://avatars.dicebear.com/api/adventurer-neutral/mail%40ashallendesign.co.uk.svg'
-        "
-        alt="User Photo"
-      />
-      <div>
-        <h2>{{ user.displayName }}</h2>
-        <p>{{ user.email }}</p>
-      </div>
-    </div> -->
     <div class="padding">
       <div class="col-md-8">
         <div class="card">
@@ -46,7 +33,7 @@
             </h3>
             <p>{{ user.email }}</p>
           </div>
-          <button class="custom-button" @click="isPasswordModalOpen = true">Edit password</button>
+          <button class="custom-button" @click="isPasswordModalOpen = true">Change password</button>
         </div>
       </div>
     </div>
@@ -306,6 +293,7 @@ p {
   position: relative;
   display: flex;
   justify-content: center;
+   
 }
 
 .image-container {
@@ -321,6 +309,7 @@ img {
   width: 100%;
   height: auto;
   transition: transform 0.3s;
+
 }
 
 .overlay {

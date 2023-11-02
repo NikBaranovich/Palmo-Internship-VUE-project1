@@ -51,44 +51,33 @@ export const useEventsStore = defineStore("events", {
           toast.error(`Error while fetching holidays. ${error.message}`);
         });
     },
-    getCurrentUser() {
-      const auth = getAuth();
-      return new Promise((resolve, reject) => {
-        const unsubscribe = onAuthStateChanged(
-          auth,
-          (user) => {
-            unsubscribe();
-            resolve(user);
-          },
-          reject
-        );
-      });
-    },
     async fetchEvents() {
-      const user = await this.getCurrentUser();
-      if (!user || !user.emailVerified) {
-        return;
-      }
-      try {
-        const userCollectionRef = collection(db, `users/${user.uid}/events`);
-        const GroupDoc = await getDocs(userCollectionRef);
-        GroupDoc.forEach((item) => {
-          const startDate = new Date(item.data().startDate.seconds * 1000);
-          const endDate = new Date(item.data().endDate.seconds * 1000);
+      const auth = getAuth();
+      onAuthStateChanged(auth, async (user) => {
+        if (!user || !user.emailVerified) {
+          return;
+        }
+        try {
+          const userCollectionRef = collection(db, `users/${user.uid}/events`);
+          const GroupDoc = await getDocs(userCollectionRef);
+          GroupDoc.forEach((item) => {
+            const startDate = new Date(item.data().startDate.seconds * 1000);
+            const endDate = new Date(item.data().endDate.seconds * 1000);
 
-          this.eventsState.push({
-            id: item.id,
-            ...item.data(),
-            startDate,
-            endDate,
+            this.eventsState.push({
+              id: item.id,
+              ...item.data(),
+              startDate,
+              endDate,
+            });
           });
-        });
-      } catch (error) {
-        toast.error(
-          `An error occurred while fetching events. ${error.message}`
-        );
-        return;
-      }
+        } catch (error) {
+          toast.error(
+            `An error occurred while fetching events. ${error.message}`
+          );
+          return;
+        }
+      });
     },
     async saveEvent(newEvent) {
       const auth = getAuth();

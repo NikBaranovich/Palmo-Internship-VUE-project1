@@ -26,19 +26,27 @@ export function useLocalEvents(weeks) {
       }
 
       if (event.repeat === "annually") {
-        const startMonthDay = startDate.getMonth() * 100 + startDate.getDate();
-        const endMonthDay = endDate.getMonth() * 100 + endDate.getDate();
-
         const eventStartMonthDay =
           event.startDate.getMonth() * 100 + event.startDate.getDate();
         const eventEndMonthDay =
           event.endDate.getMonth() * 100 + event.endDate.getDate();
 
-        return (
-          (eventStartMonthDay >= startMonthDay &&
-            eventStartMonthDay <= endMonthDay) ||
-          (eventEndMonthDay >= startMonthDay && eventEndMonthDay <= endMonthDay)
-        );
+        const startMonthDay = startDate.getMonth() * 100 + startDate.getDate();
+        const endMonthDay = endDate.getMonth() * 100 + endDate.getDate();
+
+        if (endMonthDay < startMonthDay) {
+          return (
+            eventStartMonthDay >= startMonthDay ||
+            eventEndMonthDay <= endMonthDay
+          );
+        } else {
+          return (
+            (eventStartMonthDay >= startMonthDay &&
+              eventStartMonthDay <= endMonthDay) ||
+            (eventEndMonthDay >= startMonthDay &&
+              eventEndMonthDay <= endMonthDay)
+          );
+        }
       }
 
       return false;

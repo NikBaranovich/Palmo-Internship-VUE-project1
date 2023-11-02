@@ -29,7 +29,7 @@
 
 .modal-content {
   background-color: #fff;
-  width: 400px;
+  width: 550px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
   border-radius: 10px;
   overflow: hidden;
@@ -49,7 +49,7 @@
   margin: 0;
 }
 .modal-body {
-  padding: 20px;
+  padding: 30px 50px;
 }
 
 .modal-footer {

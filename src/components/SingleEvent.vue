@@ -45,9 +45,9 @@
               v-model="editedEvent.endDate"
             />
           </div>
-          <div>
-            <label for="event-color">Цвет события</label>
-            <input for="event-color" type="color" v-model="editedEvent.color" />
+          <div class="form-group">
+            <label for="event-color"  class="mb-2">Event color</label>
+            <input class="form-control form-control-color" type="color" v-model="editedEvent.color" />
           </div>
           <div class="form-group">
             <label for="event-repeat">Repeat</label>

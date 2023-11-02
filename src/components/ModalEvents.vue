@@ -1,5 +1,5 @@
 <template>
-  <div class="modal">
+  <div class="custom-modal">
     <div class="event-modal" :style="{left: coords.left, top: coords.top}">
       <div class="event-modal-content">
         <div class="event-header">
@@ -20,7 +20,7 @@ export default {
 };
 </script>
 <style scoped>
-.modal {
+.custom-modal {
   justify-content: center;
   align-items: center;
   position: fixed;
