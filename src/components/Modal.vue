@@ -1,5 +1,5 @@
 <template>
-  <div class="modal" @click="$emit('close')">
+  <div class="custom-modal" @click="$emit('close')">
     <div class="modal-content" @click.stop>
       <div class="modal-header">
         <slot name="header"></slot>
@@ -14,7 +14,7 @@
   </div>
 </template>
 <style scoped>
-.modal {
+.custom-modal {
   display: flex;
   justify-content: center;
   align-items: center;

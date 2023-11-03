@@ -1,5 +1,5 @@
 <template>
-  <div class="modal">
+  <div class="custom-modal">
     <div class="modal-overlay">
       <div class="modal-content">
         <div class="modal-header">
@@ -17,7 +17,7 @@
 </template>
 
 <style scoped>
-.modal {
+.custom-modal {
   position: fixed;
   top: 0;
   left: 0;
@@ -58,6 +58,4 @@
   text-align: center;
   margin-top: 20px;
 }
-
-
 </style>
