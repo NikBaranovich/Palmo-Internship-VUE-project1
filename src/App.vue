@@ -34,8 +34,6 @@ export default {
   },
   mounted() {
     this.auth();
-  },
-  created() {
     this.fetchEvents();
     this.fetchHolidays(2023, "UA");
   },

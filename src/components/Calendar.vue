@@ -34,6 +34,7 @@
             <div
               class="event"
               v-for="event in [...day.events].splice(0, 2)"
+              :key="event.id"
               :style="{'background-color': event.color}"
               @click.stop="openSingleEvent(event.id)"
             >
