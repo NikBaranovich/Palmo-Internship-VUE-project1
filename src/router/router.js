@@ -3,7 +3,6 @@ import {createRouter, createWebHistory} from "vue-router";
 import Calendar from "@/components/Calendar.vue";
 import Register from "@/components/Register.vue";
 import Login from "@/components/Login.vue";
-import AccessDenied from "@/components/AccessDenied.vue";
 import NotFound from "@/components/NotFound.vue";
 import UserPage from "@/components/UserPage.vue";
 import ForgotPassword from "@/components/ForgotPassword.vue";
@@ -19,11 +18,6 @@ const routes = [
     name: "register",
     component: Register,
     meta: {requireNoAuth: true},
-  },
-  {
-    path: "/access-denied",
-    name: "accessDenied",
-    component: AccessDenied,
   },
   {
     path: "/login",
@@ -61,15 +55,10 @@ router.beforeEach(async (to, from, next) => {
     const eventsStore = useEventsStore();
     if (!(await getCurrentUser())) {
       next({name: "notFound"});
+      return;
     }
-    if(!eventsStore.events.length){
-      await eventsStore.fetchEvents()
-    }
-    const hasEvent = eventsStore.events.find(
-      (event) => event.id == to.params.id
-    );
-    if (!hasEvent) {
-      next({name: "notFound"});
+    if (!eventsStore.events.length) {
+      next({name: "calendar"});
       return;
     }
   }

@@ -4,40 +4,21 @@
     <router-view></router-view>
   </div>
 </template>
-<script>
+<script setup>
 import NavigationPanel from "@/components/NavigationPanel.vue";
 import {useAuthorizationStore} from "@/store/authorization.js";
-import {mapActions, mapState} from "pinia";
 import {useEventsStore} from "@/store/events.js";
+import {onMounted} from "vue";
 import "vue3-toastify/dist/index.css";
 
-export default {
-  data() {
-    return {
-      msg: null,
-    };
-  },
-  components: {
-    NavigationPanel,
-  },
-  methods: {
-    ...mapActions(useAuthorizationStore, ["auth"]),
-    ...mapActions(useEventsStore, [
-      "saveEvent",
-      "eventsInRange",
-      "fetchEvents",
-      "fetchHolidays",
-    ]),
-  },
-  computed: {
-    ...mapState(useEventsStore, ["events"]),
-  },
-  mounted() {
-    this.auth();
-    this.fetchEvents();
-    this.fetchHolidays(2023, "UA");
-  },
-};
+const {auth} = useAuthorizationStore();
+const {fetchEvents, fetchHolidays} = useEventsStore();
+
+onMounted(() => {
+  auth();
+  fetchEvents();
+  fetchHolidays(new Date().getFullYear(), "UA");
+});
 </script>
 <style scoped>
 .content {

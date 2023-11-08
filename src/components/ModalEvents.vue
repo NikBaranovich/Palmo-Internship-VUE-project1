@@ -10,14 +10,12 @@
     </div>
   </div>
 </template>
-<script>
-export default {
-  props: {
-    coords:{
-      type: Object,
-    }
-  },
-};
+<script setup>
+import {defineProps} from "vue";
+
+const props = defineProps({
+  coords: Object,
+});
 </script>
 <style scoped>
 .custom-modal {

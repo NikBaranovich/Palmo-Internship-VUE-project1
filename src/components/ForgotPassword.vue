@@ -25,44 +25,42 @@
   </div>
 </template>
 
-<script>
+<script setup>
+
 import {useAuthorizationStore} from "@/store/authorization.js";
-import {mapActions, mapState} from "pinia";
+const {userCacheEmail, sendPasswordReset, setUserCacheEmail} =
+  useAuthorizationStore();
+
+import {useRouter} from "vue-router";
+let router = useRouter();
+
+import {ref, onMounted} from "vue";
+
+//Email form
+let email = ref("");
+
+onMounted(() => {
+  email = userCacheEmail;
+});
+
+function resetPassword(email) {
+  isModalVisible.value = true;
+  sendPasswordReset(email);
+}
+
+//Modal
 import ModalMessage from "@/components//ModalMessage.vue";
-export default {
-  data() {
-    return {
-      email: "",
-      isModalVisible: false,
-    };
-  },
-  components: {
-    ModalMessage,
-  },
-  computed: {
-    ...mapState(useAuthorizationStore, ["userCacheEmail"]),
-  },
-  methods: {
-    ...mapActions(useAuthorizationStore, [
-      "sendPasswordReset",
-      "setUserCacheEmail",
-    ]),
-    resetPassword(email) {
-      this.isModalVisible = true;
-      this.sendPasswordReset(email);
-    },
-    closeModal() {
-      this.isModalVisible = false;
-      this.setUserCacheEmail(this.email);
-      this.$router.push({
-        name: "login",
-      });
-    },
-  },
-  mounted() {
-    this.email = this.userCacheEmail;
-  },
-};
+
+let isModalVisible = ref(false);
+
+function closeModal() {
+  isModalVisible.value = false;
+  setUserCacheEmail(email);
+  router.push({
+    name: "login",
+  });
+}
+
 </script>
 <style scoped>
 .forgot-password {

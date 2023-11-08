@@ -23,54 +23,53 @@
     </div>
   </div>
 </template>
-<script>
+<script setup>
 import {useAuthorizationStore} from "@/store/authorization.js";
+const {setUserCacheEmail,userCacheEmail, signIn, signInWithGoogle} = useAuthorizationStore();
+
 import {usePageStore} from "@/store/page.js";
-import {mapActions, mapState} from "pinia";
-export default {
-  data() {
-    return {
-      email: "",
-      password: "",
-      error: "",
-    };
-  },
-  computed: {
-    ...mapState(usePageStore, ["pageYear", "pageMonth"]),
-    ...mapState(useAuthorizationStore, ["userCacheEmail"]),
-  },
-  mounted() {
-    this.email = this.userCacheEmail;
-  },
-  methods: {
-    ...mapActions(useAuthorizationStore, ["signIn", "signInWithGoogle"]),
-    async signInWithGoogleHandler() {
-      if (await this.signInWithGoogle()) {
-        return;
-      }
-      this.$router.push({
-        name: "calendar",
-        query: {
-          month: this.pageMonth,
-          year: this.pageYear,
-        },
-      });
+const {pageYear, pageMonth} = usePageStore();
+
+import {ref} from "vue";
+import {useRouter} from "vue-router";
+let router = useRouter();
+
+//Email Sign In
+let email = ref(userCacheEmail);
+let password = ref("");
+let error = ref("");
+
+async function signInFormSubmit() {
+  error.value = await signIn(email.value, password.value);
+
+  if (error.value) {
+    return;
+  }
+
+  setUserCacheEmail(email.value);
+  router.push({
+    name: "calendar",
+    query: {
+      month: pageMonth,
+      year: pageYear,
     },
-    async signInFormSubmit() {
-      this.error = await this.signIn(this.email, this.password);
-      if (this.error) {
-        return;
-      }
-      this.$router.push({
-        name: "calendar",
-        query: {
-          month: this.pageMonth,
-          year: this.pageYear,
-        },
-      });
+  });
+}
+
+//Google Sign In
+async function signInWithGoogleHandler() {
+  if (await signInWithGoogle()) {
+    return;
+  }
+  
+  router.push({
+    name: "calendar",
+    query: {
+      month: pageMonth,
+      year: pageYear,
     },
-  },
-};
+  });
+}
 </script>
 <style>
 .sign-in {

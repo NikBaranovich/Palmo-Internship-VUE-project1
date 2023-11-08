@@ -50,83 +50,75 @@
     </modal-message>
   </div>
 </template>
-<script>
+<script setup>
+//Store
 import {useAuthorizationStore} from "@/store/authorization.js";
-import {usePageStore} from "@/store/page.js";
-import {formValidationMixin} from "@/mixins/formValidation.js";
-import {redirectMixin} from "@/mixins/redirect.js";
+const {register, signInWithGoogle, setUserCacheEmail} = useAuthorizationStore();
 
+import {usePageStore} from "@/store/page.js";
+const {pageYear, pageMonth} = usePageStore();
+
+//Hooks
+import {useFormValidation} from "@/hooks/useFormValidation.js";
+const {isNameInvalid, isEmailInvalid, isPasswordInvalid} = useFormValidation();
+
+import {ref, reactive} from "vue";
+
+import {useRouter} from "vue-router";
+let router = useRouter();
+
+//Register
+let username = ref("");
+let email = ref("");
+let password = ref("");
+let error = ref("");
+const errors = reactive({
+  username: null,
+  email: null,
+  password: null,
+});
+const registerFormSubmit = async () => {
+  errors.username = isNameInvalid(username.value);
+  errors.email = isEmailInvalid(email.value);
+  errors.password = isPasswordInvalid(password.value);
+  if (errors.username || errors.email || errors.password) {
+    return;
+  }
+  error.value = await register(email.value, password.value, username.value);
+  if (error.value) {
+    return;
+  }
+  isModalVisible.value = true;
+};
+
+const signInWithGoogleHandler = async () => {
+  if (await signInWithGoogle()) {
+    return;
+  }
+  router.push({
+    name: "calendar",
+    query: {
+      month: pageMonth,
+      year: pageYear,
+    },
+  });
+};
+
+//Modal
 import ModalMessage from "@/components//ModalMessage.vue";
-import {mapActions, mapState} from "pinia";
-export default {
-  data() {
-    return {
-      username: "",
-      email: "",
-      password: "",
-      error: null,
-      errors: {
-        username: null,
-        email: null,
-        password: null,
-      },
-      isModalVisible: false,
-    };
-  },
-  computed: {
-    ...mapState(usePageStore, ["pageYear", "pageMonth"]),
-  },
-  components: {
-    ModalMessage,
-  },
-  mixins: [formValidationMixin, redirectMixin],
-  methods: {
-    ...mapActions(useAuthorizationStore, [
-      "register",
-      "signInWithGoogle",
-      "setUserCacheEmail",
-    ]),
-    closeModal() {
-      this.isModalVisible = false;
-      this.setUserCacheEmail(this.email);
-      this.$router.push({
-        name: "login",
-      });
-    },
-    async signInWithGoogleHandler() {
-      if (await this.signInWithGoogle()) {
-        return;
-      }
-      this.$router.push({
-        name: "calendar",
-        query: {
-          month: this.pageMonth,
-          year: this.pageYear,
-        },
-      });
-    },
-    async registerFormSubmit() {
-      this.errors.username = this.isNameInvalid(this.username);
-      this.errors.email = this.isEmailInvalid(this.email);
-      this.errors.password = this.isPasswordInvalid(this.password);
-      if (this.errors.username || this.errors.email || this.errors.password) {
-        return;
-      }
-      this.error = await this.register(
-        this.email,
-        this.password,
-        this.username
-      );
-      if (this.error) {
-        return;
-      }
-      this.isModalVisible = true;
-    },
-  },
+
+let isModalVisible = ref(false);
+
+const closeModal = () => {
+  isModalVisible.value = false;
+  setUserCacheEmail(email.value);
+  router.push({
+    name: "login",
+  });
 };
 </script>
 <style scoped>
-.registration{
+.registration {
   display: flex;
   height: 100%;
   justify-content: center;

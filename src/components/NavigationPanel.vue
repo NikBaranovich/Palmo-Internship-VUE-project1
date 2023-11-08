@@ -6,7 +6,7 @@
     <div class="navbar-right">
       <div v-if="user">
         <router-link :to="{name: 'user'}" class="user-info"
-          >Welcome, {{ user.displayName}}</router-link
+          >Welcome, {{ user.displayName }}</router-link
         >
         <button @click="logoutHandler">Logout</button>
       </div>
@@ -18,26 +18,24 @@
   </nav>
 </template>
 
-<script>
-import {useAuthorizationStore} from "@/store/authorization.js";
+<script setup>
+import {useAuthorizationStore} from "../store/authorization.js";
+import {storeToRefs} from "pinia";
+const {logout} = useAuthorizationStore();
+const {user} = storeToRefs(useAuthorizationStore());
 import {useEventsStore} from "@/store/events.js";
-import {mapActions, mapState} from "pinia";
-export default {
-  computed: {
-    ...mapState(useAuthorizationStore, ["user"]),
-  },
-  methods: {
-    ...mapActions(useAuthorizationStore, ["logout"]),
-    ...mapActions(useEventsStore, ["clearEvents"]),
-    logoutHandler() {
-      this.clearEvents();
-      this.logout();
-      this.$router.push({
-        name: "calendar",
-      });
-    },
-  },
-};
+const {clearEvents} = useEventsStore();
+
+import {useRouter} from "vue-router";
+let router = useRouter();
+
+function logoutHandler() {
+  clearEvents();
+  logout();
+  router.push({
+    name: "calendar",
+  });
+}
 </script>
 
 <style scoped>
@@ -66,7 +64,7 @@ export default {
 
 .navbar-right button {
   background-color: #fff;
-  color: var(--secondary-color);;
+  color: var(--secondary-color);
   border: none;
   border-radius: 5px;
   padding: 5px 10px;

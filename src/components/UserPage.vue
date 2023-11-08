@@ -33,7 +33,9 @@
             </h3>
             <p>{{ user.email }}</p>
           </div>
-          <button class="custom-button" @click="isPasswordModalOpen = true">Change password</button>
+          <button class="custom-button" @click="isPasswordModalOpen = true">
+            Change password
+          </button>
         </div>
       </div>
     </div>
@@ -124,71 +126,63 @@
     </modal>
   </div>
 </template>
-<script>
+<script setup>
 import {useAuthorizationStore} from "@/store/authorization.js";
-import {mapActions, mapState} from "pinia";
-import {getStorage, ref, uploadBytes, getDownloadURL} from "firebase/storage";
+import {storeToRefs} from "pinia";
+import {
+  getStorage,
+  ref as dbRef,
+  uploadBytes,
+  getDownloadURL,
+} from "firebase/storage";
+import {ref} from "vue";
 import Modal from "@/components/Modal.vue";
-import {formValidationMixin} from "@/mixins/formValidation.js";
 
-export default {
-  data() {
-    return {
-      isNameModalOpen: false,
-      isImageModalOpen: false,
-      isPasswordModalOpen: false,
-      username: "",
-      password: "",
-      file: null,
-      fileError: "",
-      passwordError: "",
-    };
-  },
-  components: {
-    Modal,
-  },
-  mixins: [formValidationMixin],
-  computed: {
-    ...mapState(useAuthorizationStore, ["user"]),
-  },
-  methods: {
-    ...mapActions(useAuthorizationStore, [
-      "updateUserImage",
-      "updateUserPassword",
-      "updateUserName",
-    ]),
-    handleUpdateUserName() {
-      this.updateUserName(this.username);
-      this.isNameModalOpen = false;
-    },
-    handleUpdatePassword() {
-      this.passwordError = this.isPasswordInvalid(this.password);
-      if (this.passwordError) {
-        return;
-      }
+let isNameModalOpen = ref(false);
+let isImageModalOpen = ref(false);
+let isPasswordModalOpen = ref(false);
+let username = ref("");
+let password = ref("");
+let file = ref(null);
+let fileError = ref("");
+let passwordError = ref("");
 
-      this.updateUserPassword(this.password);
-      this.isPasswordModalOpen = false;
-    },
-    async uploadImage() {
-      if (this.fileError) {
-        return;
-      }
-      const storage = getStorage();
-      const storageRef = ref(storage, `${this.user.uid}/${this.file.name}`);
-      await uploadBytes(storageRef, this.file);
-      this.updateUserImage(await getDownloadURL(storageRef));
-      this.isImageModalOpen = false;
-    },
-    getFile(event) {
-      if (event.target.files[0].type !== "image/jpeg") {
-        this.fileError = "Unsupported file format";
-        return;
-      }
-      this.file = event.target.files[0];
-      this.fileError = "";
-    },
-  },
+const {user} = storeToRefs(useAuthorizationStore());
+import {useFormValidation} from "@/hooks/useFormValidation.js";
+
+const {isPasswordInvalid} = useFormValidation();
+const {updateUserImage, updateUserPassword, updateUserName} =
+  useAuthorizationStore();
+const handleUpdateUserName = () => {
+  updateUserName(username.value);
+  isNameModalOpen.value = false;
+};
+const handleUpdatePassword = () => {
+  passwordError.value = isPasswordInvalid(password.value);
+  if (passwordError.value) {
+    return;
+  }
+
+  updateUserPassword(password.value);
+  isPasswordModalOpen.value = false;
+};
+const uploadImage = async () => {
+  if (fileError.value) {
+    return;
+  }
+  const storage = getStorage();
+  const storageRef = dbRef(storage, `${user.value.uid}/${file.value.name}`);
+  await uploadBytes(storageRef, file.value);
+  updateUserImage(await getDownloadURL(storageRef));
+  isImageModalOpen.value = false;
+};
+const getFile = (event) => {
+  if (event.target.files[0].type !== "image/jpeg") {
+    fileError.value = "Unsupported file format";
+    return;
+  }
+  file.value = event.target.files[0];
+  fileError.value = "";
 };
 </script>
 <style scoped>
@@ -293,7 +287,6 @@ p {
   position: relative;
   display: flex;
   justify-content: center;
-   
 }
 
 .image-container {
@@ -309,7 +302,6 @@ img {
   width: 100%;
   height: auto;
   transition: transform 0.3s;
-
 }
 
 .overlay {
@@ -345,7 +337,7 @@ img {
   height: 15px;
   cursor: pointer;
 }
-.custom-button{
+.custom-button {
   max-width: 200px;
   margin: 10px auto;
 }

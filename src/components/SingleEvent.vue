@@ -44,10 +44,17 @@
               class="form-input"
               v-model="editedEvent.endDate"
             />
+            <div v-color:red v-if="errors.endDate" class="invalid-input-error">
+              {{ errors.endDate }}
+            </div>
           </div>
           <div class="form-group">
-            <label for="event-color"  class="mb-2">Event color</label>
-            <input class="form-control form-control-color" type="color" v-model="editedEvent.color" />
+            <label for="event-color" class="mb-2">Event color</label>
+            <input
+              class="form-control form-control-color"
+              type="color"
+              v-model="editedEvent.color"
+            />
           </div>
           <div class="form-group">
             <label for="event-repeat">Repeat</label>
@@ -71,78 +78,81 @@
       </template>
       <template v-slot:footer>
         <div class="button-group">
-          <button class="custom-button" @click="closeModal">Cancel</button>
+          <button class="custom-button" @click="isModalVisible = false">
+            Cancel
+          </button>
           <button class="custom-button" @click="editEventHandler">Edit</button>
         </div>
       </template>
     </modal>
   </div>
 </template>
-<script>
+<script setup>
 import {useEventsStore} from "@/store/events.js";
 import {usePageStore} from "@/store/page.js";
-import {mapActions, mapState} from "pinia";
+import {ref, reactive, computed} from "vue";
+
+const {eventsWithHolidays} = useEventsStore();
+const {pageYear, pageMonth} = usePageStore()
+
 import Modal from "@/components/Modal.vue";
 import CustomSelect from "@/components/UI/CustomSelect.vue";
 
-import CustomDateInput from "@/components/UI/CustomDateInput.vue";
-import {redirectMixin} from "@/mixins/redirect.js";
-import {modalMixin} from "@/mixins/modal.js";
+import {useFormValidation} from "@/hooks/useFormValidation.js";
+const {isEndDateInvalid} = useFormValidation();
 
-export default {
-  data() {
-    return {
-      isModalVisible: false,
-      editedEvent: {
-        title: null,
-        startDate: null,
-        endDate: null,
-        repeat: null,
-        description: null,
-        color: null,
-      },
-      repeatOptions: ["none", "monthly", "annually"],
-    };
-  },
-  mixins: [redirectMixin, modalMixin],
-  components: {
-    Modal,
-    CustomDateInput,
-    CustomSelect,
-  },
-  methods: {
-    ...mapActions(useEventsStore, ["editEvent", "deleteEvent"]),
-    editClickHandler() {
-      this.editedEvent = {...this.event};
-      this.openModal();
+import {useRouter, useRoute} from "vue-router";
+let router = useRouter();
+let route = useRoute();
+import CustomDateInput from "@/components/UI/CustomDateInput.vue";
+
+let isModalVisible = ref(false);
+const editedEvent = ref({
+  title: null,
+  startDate: null,
+  endDate: null,
+  repeat: null,
+  description: null,
+  color: null,
+});
+const errors = reactive({
+  endDate: "",
+});
+const repeatOptions = ["none", "monthly", "annually"];
+
+const {editEvent, deleteEvent} = useEventsStore();
+const event = computed(() => {
+  const id = route.params.id;
+  return eventsWithHolidays.find((event) => event.id == id);
+});
+
+const editClickHandler = () => {
+  editedEvent.value = {...event.value};
+  isModalVisible.value = true;
+};
+
+const editEventHandler = () => {
+  errors.endDate = isEndDateInvalid(newEvent.startDate, newEvent.endDate);
+  if (errors.endDate) {
+    return;
+  }
+
+  editEvent(event.value.id, {...editedEvent.value});
+  isModalVisible.value = false;
+};
+
+const deleteEventHandler = async () => {
+  const error = await deleteEvent(event.value.id);
+  if (error) {
+    return;
+  }
+  router.push({
+    name: "calendar",
+    query: {
+      month: pageMonth,
+      year: pageYear,
     },
-    editEventHandler() {
-      this.editEvent(this.event.id, {...this.editedEvent});
-      this.closeModal();
-    },
-    async deleteEventHandler() {
-      const error = await this.deleteEvent(this.event.id);
-      if (error) {
-        return;
-      }
-      console.log(this.pageMonth);
-      this.$router.push({
-        name: "calendar",
-        query: {
-          month: this.pageMonth,
-          year: this.pageYear,
-        },
-      });
-    },
-  },
-  computed: {
-    ...mapState(useEventsStore, ["events", "eventsWithHolidays"]),
-    ...mapState(usePageStore, ["pageYear", "pageMonth"]),
-    event() {
-      const id = this.$route.params.id;
-      return this.eventsWithHolidays.find((event) => event.id == id);
-    },
-  },
+  });
 };
 </script>
 
