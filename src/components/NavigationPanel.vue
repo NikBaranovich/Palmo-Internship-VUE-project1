@@ -44,7 +44,7 @@ function logoutHandler() {
 //Theme switch
 function getMediaPreference() {
   const hasDarkPreference = window.matchMedia(
-    "(prefers-color-scheme: dark)"
+    "(prefers-color-scheme: light)"
   ).matches;
   return hasDarkPreference;
 }
