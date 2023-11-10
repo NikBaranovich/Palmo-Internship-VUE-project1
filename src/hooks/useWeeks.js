@@ -4,10 +4,24 @@ import {useRouter, useRoute} from "vue-router";
 export function useWeeks() {
   const route = useRoute();
   let displayedMonth;
-  if (route.query.year && route.query.month) {
-    displayedMonth = ref(new Date(route.query.year, route.query.month, 1));
-  } else {
+  if (!route.query.year || !route.query.month) {
     displayedMonth = ref(new Date());
+
+  } else if (isNaN(route.query.year) || isNaN(route.query.month)) {
+
+    displayedMonth = ref(new Date());
+  } else if (
+
+    route.query.year < 1970 ||
+    route.query.year > 2035 ||
+    route.query.month > 11 ||
+    route.query.month < 0
+  ) {
+
+    displayedMonth = ref(new Date());
+  } else {
+    
+    displayedMonth = ref(new Date(route.query.year, route.query.month, 1));
   }
 
   const weeks = computed(() => {

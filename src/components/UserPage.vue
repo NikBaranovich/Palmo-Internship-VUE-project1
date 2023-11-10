@@ -9,6 +9,7 @@
               <div class="image-container">
                 <img
                   class="image"
+                  referrerpolicy="no-referrer"
                   :src="
                     user.photoURL ||
                     'https://avatars.dicebear.com/api/adventurer-neutral/mail%40ashallendesign.co.uk.svg'
@@ -53,7 +54,11 @@
               type="text"
               id="username"
               v-model="username"
+              @input="validateUsername"
             />
+            <div v-color:red v-if="usernameError" class="invalid-input-error">
+              {{ usernameError }}
+            </div>
           </div>
         </div>
       </template>
@@ -108,6 +113,7 @@
               type="text"
               id="username"
               v-model="password"
+              @input="validatePassword"
             />
             <div v-color:red v-if="passwordError" class="invalid-input-error">
               {{ passwordError }}
@@ -144,21 +150,36 @@ let isPasswordModalOpen = ref(false);
 let username = ref("");
 let password = ref("");
 let file = ref(null);
+let usernameError = ref("");
 let fileError = ref("");
 let passwordError = ref("");
 
 const {user} = storeToRefs(useAuthorizationStore());
 import {useFormValidation} from "@/hooks/useFormValidation.js";
 
-const {isPasswordInvalid} = useFormValidation();
+const {isPasswordInvalid, isNameInvalid, isImageFileInvalid} =
+  useFormValidation();
 const {updateUserImage, updateUserPassword, updateUserName} =
   useAuthorizationStore();
+
+const validateUsername = () => {
+  usernameError.value = isNameInvalid(username.value);
+};
+const validatePassword = () => {
+  passwordError.value = isPasswordInvalid(password.value);
+};
 const handleUpdateUserName = () => {
+  validateUsername();
+
+  if (usernameError.value) {
+    return;
+  }
   updateUserName(username.value);
   isNameModalOpen.value = false;
 };
 const handleUpdatePassword = () => {
-  passwordError.value = isPasswordInvalid(password.value);
+  validatePassword();
+
   if (passwordError.value) {
     return;
   }
@@ -167,6 +188,8 @@ const handleUpdatePassword = () => {
   isPasswordModalOpen.value = false;
 };
 const uploadImage = async () => {
+  fileError.value = isImageFileInvalid(file.value);
+
   if (fileError.value) {
     return;
   }
@@ -177,12 +200,11 @@ const uploadImage = async () => {
   isImageModalOpen.value = false;
 };
 const getFile = (event) => {
-  if (event.target.files[0].type !== "image/jpeg") {
-    fileError.value = "Unsupported file format";
+  fileError.value = isImageFileInvalid(event.target.files[0]);
+  if (fileError.value) {
     return;
   }
   file.value = event.target.files[0];
-  fileError.value = "";
 };
 </script>
 <style scoped>
@@ -198,8 +220,10 @@ const getFile = (event) => {
   background-color: #455a64;
 }
 
-.card-no-border .card {
-  border-color: #d7dfe3;
+ .card {
+  border-color: var(--primary-accent) !important;
+
+  background-color: var(--secondary-color-contrast) !important;
   border-radius: 4px;
   margin-bottom: 30px;
   -webkit-box-shadow: 0px 5px 20px rgba(0, 0, 0, 0.05);
@@ -208,6 +232,7 @@ const getFile = (event) => {
 
 .card-body {
   -ms-flex: 1 1 auto;
+  background-color: var(--secondary-color-contrast);
   flex: 1 1 auto;
   padding: 1.25rem;
 }
@@ -247,13 +272,6 @@ html body .m-t-10 {
 .btn-primary.disabled {
   background: #7460ee;
   border: 1px solid #7460ee;
-  -webkit-box-shadow: 0 2px 2px 0 rgba(116, 96, 238, 0.14),
-    0 3px 1px -2px rgba(116, 96, 238, 0.2), 0 1px 5px 0 rgba(116, 96, 238, 0.12);
-  box-shadow: 0 2px 2px 0 rgba(116, 96, 238, 0.14),
-    0 3px 1px -2px rgba(116, 96, 238, 0.2), 0 1px 5px 0 rgba(116, 96, 238, 0.12);
-  -webkit-transition: 0.2s ease-in;
-  -o-transition: 0.2s ease-in;
-  transition: 0.2s ease-in;
 }
 
 .btn-rounded {
@@ -301,7 +319,6 @@ p {
 img {
   width: 100%;
   height: auto;
-  transition: transform 0.3s;
 }
 
 .overlay {
@@ -312,7 +329,6 @@ img {
   background-color: rgba(0, 0, 0, 0.5);
   padding: 10px;
   transform: translateY(100%);
-  transition: transform 0.3s;
   cursor: pointer;
 }
 

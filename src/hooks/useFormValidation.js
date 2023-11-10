@@ -1,4 +1,3 @@
-
 export function useFormValidation() {
   function isNameInvalid(name) {
     const minLength = 3;
@@ -6,10 +5,10 @@ export function useFormValidation() {
     if (!name) {
       return "Name field is required";
     }
-    if (name.length <= minLength) {
+    if (name.length < minLength) {
       return `Name must be at least ${minLength} characters`;
     }
-    if (name.length >= maxLength) {
+    if (name.length > maxLength) {
       return `Name must be no more than ${maxLength} characters`;
     }
     return null;
@@ -20,7 +19,7 @@ export function useFormValidation() {
     const spaceSymbol = email.indexOf(" ");
 
     if (!email) {
-      return "Phone field is required";
+      return "Email field is required";
     }
 
     if (atSymbol === -1 || dotSymbol === -1) {
@@ -49,7 +48,7 @@ export function useFormValidation() {
       return "The password must be at least 6 characters";
     }
     if (!hasNumber || !hasUpperCase) {
-      return "The password must contain at least one number or capital letter";
+      return "The password must contain at least one number and capital letter";
     }
     return null;
   }
@@ -60,10 +59,34 @@ export function useFormValidation() {
     }
     return null;
   }
+  function isStartDateInvalid(startDate, endDate) {
+    if (startDate.getTime() > endDate.getTime()) {
+      return "The start date must be before the end date.";
+    }
+    return null;
+  }
+  function isTitleInvalid(title) {
+    if (!title) {
+      return "Title is required";
+    }
+    return null;
+  }
+  function isImageFileInvalid(file) {
+    if(!file){
+      return "File is empty";
+    }
+    if (file.type !== "image/jpeg") {
+      return "Unsupported file format";
+    }
+    return null;
+  }
   return {
     isNameInvalid,
     isEmailInvalid,
     isPasswordInvalid,
     isEndDateInvalid,
+    isStartDateInvalid,
+    isTitleInvalid,
+    isImageFileInvalid,
   };
 }

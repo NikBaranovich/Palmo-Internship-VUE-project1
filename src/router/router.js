@@ -10,6 +10,8 @@ const SingleEvent = () => import("@/components/SingleEvent.vue");
 
 import {useEventsStore} from "@/store/events.js";
 import {getAuth, onAuthStateChanged} from "firebase/auth";
+import {storeToRefs} from "pinia";
+import {debounce} from "../hooks/useDebouce";
 
 const routes = [
   {path: "/", name: "calendar", component: Calendar},
@@ -52,15 +54,27 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
   if (to.matched.some((record) => record.name == "singleEvent")) {
-    const eventsStore = useEventsStore();
-    if (!(await getCurrentUser())) {
+    const {fetchEvents} = useEventsStore();
+    const {events} = storeToRefs(useEventsStore());
+    const user = await getCurrentUser();
+    if (!user) {
       next({name: "notFound"});
       return;
     }
-    if (!eventsStore.events.length) {
-      next({name: "calendar"});
+    if (!events.value.length) {
+      await debounce(async () => {
+        await fetchEvents(user);
+      });
+    }
+    const existedEvent = events.value.find((event) => {
+      return event.id == to.params.id;
+    });
+    if (!existedEvent) {
+      next({name: "notFound"});
       return;
     }
+    next();
+    return;
   }
   if (to.matched.some((record) => record.meta.requireAuth == true)) {
     if (!(await getCurrentUser())) {
@@ -90,4 +104,5 @@ function getCurrentUser() {
     );
   });
 }
+
 export default router;

@@ -5,7 +5,16 @@
       <form @submit.prevent="signInFormSubmit" class="form">
         <div class="form-group">
           <label for="email">Email:</label>
-          <input type="email" id="email" v-model="email" required />
+          <input
+            type="email"
+            id="email"
+            v-model="email"
+            @input="validateEmail"
+            required
+          />
+          <div v-color:red v-if="errors.email" class="invalid-input-error">
+            {{ errors.email }}
+          </div>
         </div>
         <div class="form-group">
           <label for="password">Password:</label>
@@ -25,12 +34,16 @@
 </template>
 <script setup>
 import {useAuthorizationStore} from "@/store/authorization.js";
-const {setUserCacheEmail,userCacheEmail, signIn, signInWithGoogle} = useAuthorizationStore();
+const {setUserCacheEmail, userCacheEmail, signIn, signInWithGoogle} =
+  useAuthorizationStore();
 
 import {usePageStore} from "@/store/page.js";
 const {pageYear, pageMonth} = usePageStore();
 
-import {ref} from "vue";
+import {useFormValidation} from "@/hooks/useFormValidation.js";
+const {isEmailInvalid} = useFormValidation();
+
+import {ref, reactive} from "vue";
 import {useRouter} from "vue-router";
 let router = useRouter();
 
@@ -38,11 +51,17 @@ let router = useRouter();
 let email = ref(userCacheEmail);
 let password = ref("");
 let error = ref("");
+const errors = reactive({
+  email: "",
+});
+const validateEmail = () => {
+  errors.email = isEmailInvalid(email.value);
+};
 
 async function signInFormSubmit() {
   error.value = await signIn(email.value, password.value);
 
-  if (error.value) {
+  if (error.value || errors.email) {
     return;
   }
 
@@ -61,7 +80,7 @@ async function signInWithGoogleHandler() {
   if (await signInWithGoogle()) {
     return;
   }
-  
+
   router.push({
     name: "calendar",
     query: {
@@ -84,6 +103,7 @@ async function signInWithGoogleHandler() {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   border-radius: 5px;
   text-align: center;
+  background-color: var(--secondary-color-contrast);
 }
 
 .form-group {
@@ -98,7 +118,7 @@ async function signInWithGoogleHandler() {
 .form-group input {
   width: 100%;
   padding: 10px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--primary-accent);
   border-radius: 5px;
 }
 
@@ -108,8 +128,8 @@ async function signInWithGoogleHandler() {
 }
 
 .sign-in-button {
-  background-color: #007bff;
-  color: #fff !important;
+  background-color: var(--button-accent);
+  color: var(--text-color-contrast) !important;
   padding: 10px 20px;
   border: none;
   border-radius: 5px;
@@ -118,7 +138,7 @@ async function signInWithGoogleHandler() {
 
 .google-button {
   background-color: #dd4b39;
-  color: #fff;
+  color: var(--text-color-contrast) !important;
   padding: 10px 20px;
   border: none;
   border-radius: 5px;

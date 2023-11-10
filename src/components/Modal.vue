@@ -28,7 +28,7 @@
 }
 
 .modal-content {
-  background-color: #fff;
+  background-color: var(--primary-color);
   width: 550px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
   border-radius: 10px;
@@ -37,23 +37,24 @@
 
 .modal-header {
   background-color: var(--secondary-color);
-  color: #fff;
+  color: var(--text-color);
   padding: 10px;
   display: flex;
   justify-content: space-between;
   align-items: center;
- 
 }
 
 .modal-header h2 {
   margin: 0;
 }
 .modal-body {
+  max-height: 600px;
+  overflow-y: auto;
   padding: 30px 50px;
 }
 
 .modal-footer {
-  background-color: #f0f0f0;
+  background-color: var(--calendar-header);
   padding: 10px;
   text-align: right;
 }

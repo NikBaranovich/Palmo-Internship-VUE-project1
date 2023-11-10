@@ -1,16 +1,22 @@
 <template>
-  <input :value="dateToString" @input="updateInput" type="datetime-local" />
+  <input
+    :value="dateToString"
+    @input="updateInput"
+    type="datetime-local"
+  />
 </template>
 <script setup>
 import {defineProps, defineEmits, computed} from "vue";
 
-const props = defineProps(['modelValue']);
+const props = defineProps(["modelValue"]);
 const emit = defineEmits(["update:modelValue"]);
 
 const updateInput = (event) => {
   emit("update:modelValue", stringToDate(event.target.value));
 };
-
+const focusInput = (event) => {
+  emit("focus", stringToDate(event.target.value));
+};
 
 const dateToString = computed(() => {
   const date = props.modelValue;

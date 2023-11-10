@@ -1,10 +1,57 @@
-:root{
-  --secondary-color: #32a1f0
+:root {
+  --primary-color: #ffffff;
+  --text-color: #00000;
+  --text-color-contrast: #fff;
+  --secondary-color: #32a1f0;
+  --button-color:#32a1f0; 
+  --button-accent: #1773d5;
+  --primary-accent: #ccc;
+  --calendar-header: #f0f0f0;
+  --calendar-outside-color: #eff1f3;
+  --calendar-outside-text: #bbb;
+  --close-button-color: #888;
+  --close-button-accent: #333;
+  --modal-color: #3498db;
+  --current-day-color: #32a1f0;
+  --toggle-background: #e0e0e0;
+  --toggle-background-secondary: #fff;
+  --secondary-color-contrast: #fff;
 }
-body{
+:root.dark-theme {
+  --primary-color: #031525;
+  --text-color: #9bacc7;
+  --text-color-contrast: #9bacc7;
+  --secondary-color: #162c46;
+  --button-color:#1b3758; 
+  --button-accent: #274d7b;
+  --primary-accent: #666666;
+  --calendar-header: #172e48;
+  --calendar-color: #0f1f32;
+  --calendar-outside-color: #031626;
+  --calendar-outside-text: #999999;
+  --close-button-color: #555555;
+  --close-button-accent: #777777;
+  --current-day-color: #24466d;
+  --modal-color: #172e48;
+  --toggle-background: #383838;
+  --toggle-background-secondary: #222;
+  --secondary-color-contrast: #162c46;
+}
+.day {
+  background-color: var(--calendar-color);
+}
+div,
+nav {
+  transition: all 0.5s;
+  -webkit-transition: background-color 0.5s;
+  -ms-transition: background-color 0.5s;
+  transition: background-color 0.5s;
+}
+body {
   height: 100vh;
+  color: var(--text-color) !important;
 }
-#app{
+#app {
   height: 100%;
 }
 .close-button {
@@ -26,7 +73,8 @@ body{
 .form-group .form-input {
   width: 100%;
   padding: 5px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--primary-accent);
+  color: var(--text-color);
   border-radius: 5px;
   font-size: 16px;
 }
@@ -45,12 +93,12 @@ body{
 }
 
 .button-group button[type="submit"] {
-  background-color:  var(--secondary-color);
-  color: #fff;
+  background-color: var(--button-color);
+  color: var(--primary-color);
 }
 
 .button-group button[type="submit"]:hover {
-  background-color: #007bff;
+  background-color: var(--button-accent);
 }
 .calendar {
   display: flex;
@@ -64,16 +112,16 @@ body{
   margin: 10px;
 }
 .day-names {
-  background-color: #f0f0f0;
-  border-top: 1px solid #ccc;
-  border-bottom: 1px solid #ccc;
+  background-color: var(--calendar-header);
+  border-top: 1px solid var(--primary-accent);
+  border-bottom: 1px solid var(--primary-accent);
   font-weight: bold;
   text-align: center;
 }
 
 .day-name {
   flex: 1;
-  border-right: 1px solid #ccc;
+  border-right: 1px solid var(--primary-accent);
   padding: 15px 10px;
 }
 
@@ -85,19 +133,19 @@ body{
 .day {
   width: calc(100% / 7);
   position: relative;
-  border-right: 1px solid #ccc;
-  border-bottom: 1px solid #ccc;
+  border-right: 1px solid var(--primary-accent);
+  border-bottom: 1px solid var(--primary-accent);
   text-align: center;
   padding: 15px 10px;
   font-size: 14px;
   min-height: 90px;
 }
 .current-day {
-  background-color:var(--secondary-color);
-  color: white ;
+  background-color: var(--current-day-color);
+  color: var(--text-color);
   border-radius: 50%;
 }
-.day-number{
+.day-number {
   width: 30px;
   height: 30px;
   line-height: 30px;
@@ -109,8 +157,8 @@ body{
 }
 
 .outside-month {
-  color: #bbb;
-  background-color: #eff1f3;
+  color: var(--calendar-outside-text);
+  background-color: var(--calendar-outside-color);
 }
 .events {
   display: flex;
@@ -121,7 +169,7 @@ body{
 }
 
 .event {
-  color: #fff;
+  color: var(--primary-color);
   padding: 2px 4px;
   border-radius: 4px;
   margin: 2px 0;
@@ -141,20 +189,18 @@ body{
   margin: 5px;
   border: none;
   border-radius: 5px;
-  background: var(--secondary-color);
-  color: #ffffff;
+  background: var(--button-color);
+  color: var(--text-color-contrast);
   font-size: 16px;
   text-align: center;
   text-decoration: none;
-  transition: background 0.3s;
   cursor: pointer;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .custom-button:hover {
-  background: #2e93da;
+  background: var(--button-accent);
 }
-
 
 .event-date {
   font-size: 20px;
@@ -172,9 +218,9 @@ body{
   border: none;
   font-size: 24px;
   cursor: pointer;
-  color: #888;
+  color: var(--close-button-color);
 }
 
 .close-button:hover {
-  color: #333;
+  color: var(--close-button-accent);
 }

@@ -12,7 +12,10 @@
       <button class="custom-button edit-button" @click="editClickHandler">
         Edit
       </button>
-      <button class="custom-button delete-button" @click="deleteEventHandler">
+      <button
+        class="custom-button delete-button"
+        @click="isMessageModalVisible = true"
+      >
         Delete
       </button>
     </div>
@@ -29,12 +32,17 @@
               type="text"
               id="event-title"
               v-model="editedEvent.title"
+              @input="validateTitle"
             />
+            <div v-color:red v-if="errors.title" class="invalid-input-error">
+              {{ errors.title }}
+            </div>
           </div>
           <div class="form-group">
             <label for="event-date">Start date</label>
             <custom-date-input
               class="form-input"
+              @input="validateEndDate"
               v-model="editedEvent.startDate"
             />
           </div>
@@ -42,6 +50,7 @@
             <label for="event-date">End date</label>
             <custom-date-input
               class="form-input"
+              @input="validateEndDate"
               v-model="editedEvent.endDate"
             />
             <div v-color:red v-if="errors.endDate" class="invalid-input-error">
@@ -85,21 +94,38 @@
         </div>
       </template>
     </modal>
+    <modal-message v-if="isMessageModalVisible">
+      <template v-slot:header>
+        <h2>Confirm deletion</h2>
+      </template>
+      <template v-slot:content>
+        <p>Are you sure you want to delete this event?</p>
+      </template>
+      <template v-slot:buttons>
+        <button class="message-button" @click="isMessageModalVisible = false">
+          Cancel
+        </button>
+
+        <button class="message-button" @click="deleteEventHandler">Yes</button>
+      </template>
+    </modal-message>
   </div>
 </template>
 <script setup>
 import {useEventsStore} from "@/store/events.js";
 import {usePageStore} from "@/store/page.js";
-import {ref, reactive, computed} from "vue";
+import {ref, reactive, computed, watch} from "vue";
 
 const {eventsWithHolidays} = useEventsStore();
-const {pageYear, pageMonth} = usePageStore()
+const {pageYear, pageMonth} = usePageStore();
+
+import ModalMessage from "@/components//ModalMessage.vue";
 
 import Modal from "@/components/Modal.vue";
 import CustomSelect from "@/components/UI/CustomSelect.vue";
 
 import {useFormValidation} from "@/hooks/useFormValidation.js";
-const {isEndDateInvalid} = useFormValidation();
+const {isEndDateInvalid, isTitleInvalid} = useFormValidation();
 
 import {useRouter, useRoute} from "vue-router";
 let router = useRouter();
@@ -107,33 +133,39 @@ let route = useRoute();
 import CustomDateInput from "@/components/UI/CustomDateInput.vue";
 
 let isModalVisible = ref(false);
-const editedEvent = ref({
-  title: null,
-  startDate: null,
-  endDate: null,
-  repeat: null,
-  description: null,
-  color: null,
+let isMessageModalVisible = ref(false);
+const event = computed(() => {
+  const id = route.params.id;
+  return eventsWithHolidays.find((event) => event.id == id);
 });
+const editedEvent = ref({...event.value});
 const errors = reactive({
+  title: "",
   endDate: "",
 });
 const repeatOptions = ["none", "monthly", "annually"];
 
 const {editEvent, deleteEvent} = useEventsStore();
-const event = computed(() => {
-  const id = route.params.id;
-  return eventsWithHolidays.find((event) => event.id == id);
-});
+
+const validateTitle = () => {
+  errors.title = isTitleInvalid(editedEvent.value.title);
+};
+const validateEndDate = () => {
+  errors.endDate = isEndDateInvalid(
+    editedEvent.value.startDate,
+    editedEvent.value.endDate
+  );
+};
 
 const editClickHandler = () => {
-  editedEvent.value = {...event.value};
   isModalVisible.value = true;
 };
 
 const editEventHandler = () => {
-  errors.endDate = isEndDateInvalid(newEvent.startDate, newEvent.endDate);
-  if (errors.endDate) {
+  validateTitle();
+  validateEndDate();
+
+  if (errors.endDate || errors.title) {
     return;
   }
 
@@ -164,8 +196,8 @@ const deleteEventHandler = async () => {
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   padding: 20px;
-  background-color: #fff;
-  transition: all 0.3s ease;
+  background-color: var(--secondary-color-contrast);
+  color: var(--text-color);
   margin: 10px;
   margin-top: 30px;
 }
@@ -185,21 +217,21 @@ const deleteEventHandler = async () => {
 .event-title {
   font-size: 28px;
   margin: 0;
-  color: #333;
+  color: var(--text-color);
 }
 
 .event-time {
   margin: 5px 0;
-  color: #666;
+  color: var(--text-color);
 }
 
 .event-repeat {
-  color: #666;
+  color: var(--text-color);
 }
 
 .event-description {
   font-style: italic;
-  color: #777;
+  color: var(--text-color);
 }
 
 .button-container {
@@ -215,7 +247,6 @@ const deleteEventHandler = async () => {
   cursor: pointer;
   font-weight: bold;
   text-transform: uppercase;
-  transition: all 0.3s ease;
   background-color: #2ecc71;
   color: white;
 }
@@ -227,7 +258,6 @@ const deleteEventHandler = async () => {
   cursor: pointer;
   font-weight: bold;
   text-transform: uppercase;
-  transition: all 0.3s ease;
   background-color: #e74c3c;
   color: white;
 }
@@ -236,5 +266,14 @@ const deleteEventHandler = async () => {
 .edit-button:hover {
   transform: translateY(-3px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.message-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-weight: bold;
+  background-color: var(--button-color);
+  color: var(--text-color);
 }
 </style>

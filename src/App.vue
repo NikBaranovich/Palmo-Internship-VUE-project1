@@ -14,6 +14,7 @@ import "vue3-toastify/dist/index.css";
 const {auth} = useAuthorizationStore();
 const {fetchEvents, fetchHolidays} = useEventsStore();
 
+
 onMounted(() => {
   auth();
   fetchEvents();
@@ -23,6 +24,7 @@ onMounted(() => {
 <style scoped>
 .content {
   display: flex;
+  background-color: var(--primary-color);
   flex-flow: column;
   height: 100%;
 }

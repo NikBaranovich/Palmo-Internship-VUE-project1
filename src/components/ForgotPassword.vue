@@ -9,8 +9,20 @@
       <form @submit.prevent="submitForm">
         <div class="form-group">
           <label for="email">Email:</label>
-          <input type="email" id="email" v-model="email" required />
+          <input
+            type="email"
+            style="max-width: 200px"
+            id="email"
+            v-model="email"
+            @input="validateEmail"
+            required
+          />
+
+          <div v-color:red v-if="errors.email" class="invalid-input-error">
+            {{ errors.email }}
+          </div>
         </div>
+
         <button @click="resetPassword(email)">Send</button>
       </form>
       <modal-message v-if="isModalVisible">
@@ -26,7 +38,6 @@
 </template>
 
 <script setup>
-
 import {useAuthorizationStore} from "@/store/authorization.js";
 const {userCacheEmail, sendPasswordReset, setUserCacheEmail} =
   useAuthorizationStore();
@@ -34,16 +45,30 @@ const {userCacheEmail, sendPasswordReset, setUserCacheEmail} =
 import {useRouter} from "vue-router";
 let router = useRouter();
 
-import {ref, onMounted} from "vue";
+import {ref, reactive, onMounted} from "vue";
 
 //Email form
+import {useFormValidation} from "@/hooks/useFormValidation.js";
+const {isEmailInvalid} = useFormValidation();
+
+const errors = reactive({
+  email: "",
+});
 let email = ref("");
 
+const validateEmail = () => {
+  errors.email = isEmailInvalid(email.value);
+};
+
 onMounted(() => {
-  email = userCacheEmail;
+  email.value = userCacheEmail;
 });
 
 function resetPassword(email) {
+  if (errors.email) {
+    return;
+  }
+
   isModalVisible.value = true;
   sendPasswordReset(email);
 }
@@ -60,7 +85,6 @@ function closeModal() {
     name: "login",
   });
 }
-
 </script>
 <style scoped>
 .forgot-password {
@@ -71,7 +95,7 @@ function closeModal() {
 
 .forgot-password-form {
   text-align: center;
-  background: #fff;
+  background: var(--secondary-color-contrast);
   padding: 40px;
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -93,14 +117,14 @@ label {
 
 input {
   padding: 8px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--primary-accent);
   border-radius: 5px;
 }
 
 button {
   padding: 10px 20px;
-  background-color: #2980b9;
-  color: #fff;
+  background-color: var(--button-color);
+  color: var(--text-color-contrast);
   border: none;
   border-radius: 5px;
   cursor: pointer;
@@ -108,11 +132,6 @@ button {
 }
 
 button:hover {
-  background-color: #1c638e;
-}
-
-.success-message {
-  color: #2ecc71;
-  margin-top: 20px;
+  background-color: var(--button-accent);
 }
 </style>

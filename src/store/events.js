@@ -7,7 +7,7 @@ import {
   doc,
   deleteDoc,
 } from "firebase/firestore";
-import {getAuth, onAuthStateChanged} from "firebase/auth";
+import {getAuth} from "firebase/auth";
 import {db} from "@/firebase/index.js";
 import axiosInstanse from "@/services/axios.js";
 import {toast} from "vue3-toastify";
@@ -54,33 +54,29 @@ export const useEventsStore = defineStore("events", () => {
         toast.error(`Error while fetching holidays. ${error.message}`);
       });
   };
-  async function fetchEvents() {
-    const auth = getAuth();
-    onAuthStateChanged(auth, async (user) => {
-      if (!user || !user.emailVerified) {
-        return;
-      }
-      try {
-        const userCollectionRef = collection(db, `users/${user.uid}/events`);
-        const GroupDoc = await getDocs(userCollectionRef);
-        GroupDoc.forEach((item) => {
-          const startDate = new Date(item.data().startDate.seconds * 1000);
-          const endDate = new Date(item.data().endDate.seconds * 1000);
 
-          eventsState.push({
-            id: item.id,
-            ...item.data(),
-            startDate,
-            endDate,
-          });
+  async function fetchEvents(user) {
+    if (!user || !user.emailVerified) {
+      return;
+    }
+    try {
+      const userCollectionRef = collection(db, `users/${user.uid}/events`);
+      const GroupDoc = await getDocs(userCollectionRef);
+      GroupDoc.forEach((item) => {
+        const startDate = new Date(item.data().startDate.seconds * 1000);
+        const endDate = new Date(item.data().endDate.seconds * 1000);
+
+        eventsState.push({
+          id: item.id,
+          ...item.data(),
+          startDate,
+          endDate,
         });
-      } catch (error) {
-        toast.error(
-          `An error occurred while fetching events. ${error.message}`
-        );
-        return;
-      }
-    });
+      });
+    } catch (error) {
+      toast.error(`An error occurred while fetching events. ${error.message}`);
+      return;
+    }
   }
   async function saveEvent(newEvent) {
     const auth = getAuth();

@@ -38,7 +38,7 @@
 }
 
 .modal-content {
-  background: #3498db;
+  background: var(--modal-color);
   color: #fff;
   padding: 20px;
   border-radius: 8px;

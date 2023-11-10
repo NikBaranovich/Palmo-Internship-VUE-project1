@@ -99,6 +99,7 @@
               type="text"
               id="event-title"
               v-model="newEvent.title"
+              @input="validateTitle"
             />
             <div v-color:red v-if="errors.title" class="invalid-input-error">
               {{ errors.title }}
@@ -110,6 +111,7 @@
               class="form-input"
               id="event-start-date"
               v-model="newEvent.startDate"
+              @input="validateEndDate"
             />
           </div>
           <div class="form-group">
@@ -118,6 +120,7 @@
               class="form-input"
               id="event-end-date"
               v-model="newEvent.endDate"
+              @input="validateEndDate"
             />
             <div v-color:red v-if="errors.endDate" class="invalid-input-error">
               {{ errors.endDate }}
@@ -183,14 +186,15 @@ import {useLocalEvents} from "@/hooks/useEvents.js";
 const {weeksWithEvents} = useLocalEvents(weeks);
 
 import {useFormValidation} from "@/hooks/useFormValidation.js";
-const {isEndDateInvalid} = useFormValidation();
+const {isEndDateInvalid, isTitleInvalid} = useFormValidation();
 
 //Store
 import {useEventsStore} from "@/store/events.js";
 const {holidays, fetchHolidays, saveEvent} = useEventsStore();
 
+import {storeToRefs} from "pinia";
 import {useAuthorizationStore} from "@/store/authorization.js";
-const {user} = useAuthorizationStore();
+const {user} = storeToRefs(useAuthorizationStore());
 
 import {usePageStore} from "@/store/page.js";
 const {setPageDate} = usePageStore();
@@ -257,7 +261,7 @@ let errors = reactive({
 });
 
 const dayClickHandler = (day) => {
-  if (!Object.keys(user).length) {
+  if (!user.value) {
     goToPage("login");
   }
 
@@ -271,12 +275,16 @@ const dayClickHandler = (day) => {
   isModalVisible.value = true;
 };
 
+const validateTitle = () => {
+  errors.title = isTitleInvalid(newEvent.title);
+};
+const validateEndDate = () => {
+  errors.endDate = isEndDateInvalid(newEvent.startDate, newEvent.endDate);
+};
+
 const saveNewEvent = () => {
-  if (!newEvent.title) {
-    errors.title = "Title is required";
-  } else {
-    errors.title = "";
-  }
+  validateTitle();
+  validateEndDate();
 
   errors.endDate = isEndDateInvalid(newEvent.startDate, newEvent.endDate);
   if (errors.endDate || errors.title) {

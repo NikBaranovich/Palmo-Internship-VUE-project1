@@ -1,6 +1,9 @@
 import {defineStore} from "pinia";
 import {toast} from "vue3-toastify";
 
+import {useEventsStore} from "@/store/events.js";
+import { debounce } from "../hooks/useDebouce";
+
 import {
   getAuth,
   createUserWithEmailAndPassword,
@@ -35,17 +38,19 @@ export const useAuthorizationStore = defineStore("authorization", () => {
   const user = computed(() => {
     return currentUser.value;
   });
-
   const auth = () => {
     const auth = getAuth();
+    const {fetchEvents} = useEventsStore();
     onAuthStateChanged(auth, async (user) => {
+      await debounce(async () => {
+        await fetchEvents(user);
+      });
       if (user) {
         if (!user.emailVerified) {
           await logout();
           currentUser.value = null;
           return;
         }
-        // Object.assign(currentUser, user);f
         currentUser.value = {...user};
         return;
       }
@@ -112,11 +117,10 @@ export const useAuthorizationStore = defineStore("authorization", () => {
       });
 
       currentUser.value = {...auth.currentUser};
-      console.log(currentUser);
 
       toast.success("Username updated!");
     } catch (error) {
-      console.log(error);
+      toast.error(error.message);
     }
   }
 
@@ -128,10 +132,9 @@ export const useAuthorizationStore = defineStore("authorization", () => {
         photoURL,
       });
       currentUser.value = {...auth.currentUser};
-      console.log(currentUser);
       toast.success("Image updated!");
     } catch (error) {
-      console.log(error);
+      toast.error(error.message);
     }
   }
 
@@ -144,7 +147,7 @@ export const useAuthorizationStore = defineStore("authorization", () => {
 
       toast.success("Password updated!");
     } catch (error) {
-      console.log(error);
+      toast.error(error.message);
     }
   }
 
@@ -154,7 +157,7 @@ export const useAuthorizationStore = defineStore("authorization", () => {
     try {
       await sendPasswordResetEmail(auth, email);
     } catch (error) {
-      console.log(error);
+      toast.error(error.message);
     }
   }
 

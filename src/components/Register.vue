@@ -5,21 +5,39 @@
       <form @submit.prevent="registerFormSubmit" class="form">
         <div class="form-group">
           <label for="email">Username:</label>
-          <input type="text" id="username" v-model="username" required />
+          <input
+            type="text"
+            id="username"
+            @input="validateUsername"
+            v-model="username"
+            required
+          />
           <div v-color:red v-if="errors.username" class="invalid-input-error">
             {{ errors.username }}
           </div>
         </div>
         <div class="form-group">
           <label for="email">Email:</label>
-          <input type="email" id="email" v-model="email" required />
+          <input
+            type="email"
+            id="email"
+            @input="validateEmail"
+            v-model="email"
+            required
+          />
           <div v-color:red v-if="errors.email" class="invalid-input-error">
             {{ errors.email }}
           </div>
         </div>
         <div class="form-group">
           <label for="password">Password:</label>
-          <input type="password" id="password" v-model="password" required />
+          <input
+            type="password"
+            id="password"
+            @input="validatePassword"
+            v-model="password"
+            required
+          />
           <div v-color:red v-if="errors.password" class="invalid-input-error">
             {{ errors.password }}
           </div>
@@ -77,10 +95,19 @@ const errors = reactive({
   email: null,
   password: null,
 });
-const registerFormSubmit = async () => {
+
+const validateUsername = () => {
   errors.username = isNameInvalid(username.value);
+};
+const validateEmail = () => {
   errors.email = isEmailInvalid(email.value);
+};
+
+const validatePassword = () => {
   errors.password = isPasswordInvalid(password.value);
+};
+
+const registerFormSubmit = async () => {
   if (errors.username || errors.email || errors.password) {
     return;
   }
@@ -130,6 +157,7 @@ const closeModal = () => {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   border-radius: 5px;
   text-align: center;
+  background-color: var(--secondary-color-contrast);
 }
 
 .form-group {
@@ -144,7 +172,7 @@ label {
 input {
   width: 100%;
   padding: 10px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--primary-accent);
   border-radius: 5px;
 }
 
@@ -154,8 +182,8 @@ input {
 }
 
 .register-button {
-  background-color: #007bff;
-  color: #fff;
+  background-color: var(--button-accent);
+  color: var(--text-color-contrast);
   padding: 10px 20px;
   border: none;
   border-radius: 5px;
