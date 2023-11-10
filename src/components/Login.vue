@@ -119,6 +119,7 @@ async function signInWithGoogleHandler() {
   width: 100%;
   padding: 10px;
   border: 1px solid var(--primary-accent);
+  color: var(--text-color);
   border-radius: 5px;
 }
 

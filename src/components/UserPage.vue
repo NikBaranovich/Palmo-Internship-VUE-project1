@@ -1,5 +1,5 @@
 <template>
-  <div class="user-profile">
+  <div class="user-profile" v-if="user">
     <div class="padding">
       <div class="col-md-8">
         <div class="card">

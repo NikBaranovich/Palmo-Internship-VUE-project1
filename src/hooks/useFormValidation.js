@@ -72,12 +72,17 @@ export function useFormValidation() {
     return null;
   }
   function isImageFileInvalid(file) {
+    if(file.size > 1000000)
+    {
+      return "File size is too big";
+    }
     if(!file){
       return "File is empty";
     }
     if (file.type !== "image/jpeg") {
       return "Unsupported file format";
     }
+    
     return null;
   }
   return {
